@@ -55,7 +55,7 @@ pygame.display.set_icon(icon)
     # Window mode (scaled up by Ratio)
 screen = pygame.display.set_mode([ (WIDTH * ratio), (HEIGHT * ratio) ]) 
     # Fullscreen mode (don't use ratio)
-#screen = pygame.display.set_mode([ (WIDTH ), (HEIGHT) ], pygame.FULLSCREEN)
+#screen = pygame.display.set_mode([ (WIDTH), (HEIGHT) ], pygame.FULLSCREEN)
 
 # Hide the mouse
 pygame.mouse.set_visible(False)
@@ -102,7 +102,7 @@ laser_list = pygame.sprite.Group() # Group of all laser sprites
 def game_text(text, x, y, centered):
     if centered == True:
         x = (x - len(text) * 4)
-    text_render = font.render(text, True, (255, 255, 255))
+    text_render = font.render(text, True, (255, 255, 255)) # RGB 
     draw_screen.blit(text_render, [x, y])
 
 ''' Main Game Loop
@@ -169,7 +169,6 @@ def main():
         # -- Game Logic --
         # Enemies
             # spawn an enemy
-                # spawn an enemy
         if pygame.time.get_ticks() > enemy_spawn_timer + 1000:
             enemy_spawn_timer = pygame.time.get_ticks()
             enemy = Enemy()

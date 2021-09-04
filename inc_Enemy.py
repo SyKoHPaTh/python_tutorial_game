@@ -45,10 +45,8 @@ class Enemy(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect() 
         self.rect.x = -16 # enemy init location (horizontal) - offscreen
-        self.rect.y = -16 # player init location (vertical) - offscreen
-        self.rect.width = 640
-        self.rect.height = 40
-        self.frame = 1 # current animation fram
+        self.rect.y = -16 # enemy init location (vertical) - offscreen
+        self.frame = 1 # current animation frame
         self.animation_time = 0 # animation delay speed
         self.shoot_time = pygame.time.get_ticks() + random.randrange(0, 1000) # delay between firing
         self.gun_loaded = 0  # ready to fire!

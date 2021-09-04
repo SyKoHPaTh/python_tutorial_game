@@ -29,7 +29,7 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect() 
         self.rect.x = 32 # player init location (horizontal)
         self.rect.y = 120 # player init location (vertical)
-        self.frame = 1 # current animation fram
+        self.frame = 1 # current animation frame
         self.animation_time = 0 # animation delay speed
         self.shoot_time = 0  # delay between firing
         self.gun_loaded = 0  # ready to fire!
