@@ -51,6 +51,7 @@ class Enemy(pygame.sprite.Sprite):
         self.shoot_time = pygame.time.get_ticks() + random.randrange(0, 1000) # delay between firing
         self.gun_loaded = 0  # ready to fire!
         self.alive = True # Flag if we're alive or not
+        self.speed = -1 # how "fast" we scoot along the screen (negative = left)
 
 
     '''  Update
@@ -73,7 +74,7 @@ class Enemy(pygame.sprite.Sprite):
 
         self.image = self.animation_frames[self.frame]
 
-        self.rect.x -= 1 # scoot across the screen kinda slow
+        self.rect.x += self.speed # scoot across the screen this fast
 
         # Offscreen, remove this sprite
         if self.rect.y < -16: 

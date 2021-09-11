@@ -33,13 +33,14 @@ class Player(pygame.sprite.Sprite):
         self.animation_time = 0 # animation delay speed
         self.shoot_time = 0  # delay between firing
         self.gun_loaded = 0  # ready to fire!
+        self.fire_delay = 500 # set this to "really slow" to demo the laser angles and stuff
 
 
     '''  Update
         Handles animations and gun timing
     '''
     def update(self):
-        if pygame.time.get_ticks() > self.shoot_time + 100:
+        if pygame.time.get_ticks() > self.shoot_time + self.fire_delay:
             self.shoot_time = pygame.time.get_ticks()
             self.gun_loaded = 1
 

@@ -18,6 +18,7 @@
 import os 
 import pygame
 import random
+import math
 
 # ---- File Includes ----
 from inc_Player import Player
@@ -121,6 +122,14 @@ def main():
     player_alive = True # Flag used to keep the game loop going
     score = 0 # Player's score!
 
+    ''' Laser type:
+        0   standard 
+        1   Homing
+        2   Chase
+        3   Targeted
+    '''
+    ammo_type = 3
+
     # Start the music loop
         # Enable music Loop by passing -1 to "repeat"
     pygame.mixer.music.play( -1 ) # Starts the music
@@ -147,10 +156,7 @@ def main():
                 sfx_player_shoot.play(); # Play the SFX
 
                 # Initialize a new laser, and add it to the group
-                laser = Lasers()
-                laser.rect.x = player.rect.x
-                laser.rect.y = player.rect.y
-                laser.type = 0 # flag saying it is a player's laser
+                laser = Lasers(player.rect.x, player.rect.y, enemy_list, ammo_type, True)
                 laser_list.add(laser)
 
         elif key[pygame.K_SPACE] == False: # released button
@@ -180,10 +186,7 @@ def main():
             if enemy_ship.gun_loaded == 1:
                 enemy_ship.gun_loaded = 0
                 # Initialize a new laser, and add it to the group
-                laser = Lasers() 
-                laser.rect.x = enemy_ship.rect.x
-                laser.rect.y = enemy_ship.rect.y
-                laser.type = 1 # flag saying it is a enemy's laser
+                laser = Lasers(enemy_ship.rect.x, enemy_ship.rect.y, False, 0, False)
                 laser_list.add(laser)
 
         # Hit detection
@@ -193,7 +196,7 @@ def main():
 
             # Lasers
             for laser in laser_list:
-                if laser.type == 0: # Player laser hit enemy
+                if laser.player_laser == True: # Player laser hit enemy
                     enemy_hit_list = pygame.sprite.spritecollide(laser, enemy_list, False, pygame.sprite.collide_mask)
                     for enemy in enemy_hit_list:
                         if enemy.alive:
@@ -201,7 +204,7 @@ def main():
                             score += 100
                             sfx_enemy_die.play(); # sfx
                             laser.kill()
-                if laser.type == 1: # Enemy Laser hits Player
+                if laser.player_laser == False: # Enemy Laser hits Player
                     if pygame.sprite.collide_mask(laser, player):
                         player_alive = False # Break the game loop flag = game over
                 # Laser hits terrain                        
@@ -223,10 +226,70 @@ def main():
             # Draw the sprites
                 # Note that these are drawn in the order they are called (overlap!)
         enemy_list.draw(draw_screen)
-        laser_list.draw(draw_screen)
+        for laser in laser_list:
+            laser.draw(draw_screen) # this overrides the group draw function
         player.draw(draw_screen)
         terrain_ceiling.draw(draw_screen)
         terrain_ground.draw(draw_screen)
+
+#======== This section completely optional ========== Trigonometry is fun!
+        if ammo_type == 3: # Targeting laser
+            # Check to make sure there is, ya know, actually an enemy out there
+            list_size = len( enemy_list )
+            if list_size > 0:
+                # find the closest enemy to us
+                closest = 999 # set a "range", in this case we want the whole screen (max range (screen width/height): sqrt(320^2 + 240^2) = 400)
+                closest_x = 0
+                closest_y = 0
+                for enemy in enemy_list:
+                        # Set start/end points to the middle of the sprites
+                    start_x = player.rect.x + (player.rect.width / 2)
+                    start_y = player.rect.y + (player.rect.height / 2)
+                    end_x = enemy.rect.x + (enemy.rect.width / 2)
+                    end_y = enemy.rect.y + (enemy.rect.height / 2)
+
+                    # get the distance
+                    distance = math.sqrt((end_x - start_x) ** 2 + (end_y - start_y) ** 2 ) # Pythagorean Theorem
+
+                    # calculate the angle to the enemy from the spaceship
+                    angle = math.atan2( end_y - start_y, end_x - start_x );
+
+                    # Draw a grey line from spaceship to enemy (ez way to do it!)
+                    pygame.draw.line(draw_screen, (55, 55, 55), (start_x, start_y), (end_x, end_y) )
+
+                    # Draw Green "points" along the line (calculated way to do it!)
+                    b = 0
+                    speed = distance / 10
+                    f = start_x
+                    g = start_y
+                    while b < distance:
+                        b += speed
+                        f = f + (math.cos(angle) * speed);
+                        g = g + (math.sin(angle) * speed);
+                        pygame.draw.line(draw_screen, (0, 255, 0), [f, g], [f, g] )
+
+                    # Check if this is the closest distance (used for 'red line' below, outside of loop)
+                    if distance < closest:
+                        closest = distance
+                        # Just get the enemy location
+                        closest_x = enemy.rect.x
+                        closest_y = enemy.rect.y
+
+                # Draw a red line pointing to the closest enemy
+                if closest_x != 0 and closest_y != 0:
+                    angle = math.atan2( closest_y - player.rect.y, closest_x - player.rect.x );
+
+                # draw points along the line
+                b = 0
+                f = player.rect.x + (player.rect.width / 2)
+                g = player.rect.y + (player.rect.height / 2)
+                while b < 10:
+                    b += 2
+                    f = f + (math.cos(angle) * 2);
+                    g = g + (math.sin(angle) * 2);
+                    pygame.draw.line(draw_screen, (255,0,0), [f, g], [f, g] )
+#======== End of section ===========
+
 
         # UI elements
         # Score
