@@ -4,6 +4,7 @@ This is a tutorial game!  Make for a Youtube Tutorial video.
 
 Watch the Python/PyGame playlist on this channel: https://www.youtube.com/sykohpath
 [master] https://www.youtube.com/watch?v=PjWkF3dncHY
+[trigonometry] https://www.youtube.com/watch?v=psyJ_ihFzb0
 
 NOTE: This is the [final] branch, which means all of the other branches (covered in
 other Youtube tutorial videos) are merged into this branch as a "final" version of
