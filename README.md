@@ -1,7 +1,8 @@
 Side-scolling Spaceship Shooter Game - Used for a Youtube Tutorial video
 
 This is a tutorial game!  Make for a Youtube Tutorial video.
-Watch the talk-though of the code here: https://www.youtube.com/watch?v=PjWkF3dncHY
+Watch the talk-though of the code here: 
+[trigonometry] https://www.youtube.com/watch?v=psyJ_ihFzb0
 
 Audio:
 	SFX:
