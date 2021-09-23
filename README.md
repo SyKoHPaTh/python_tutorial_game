@@ -4,9 +4,7 @@ This is a tutorial game!  Make for a Youtube Tutorial video.
 Watch the talk-though of the code here: 
 [master] https://www.youtube.com/watch?v=PjWkF3dncHY
 
-=================================  
 ==       Asset Credits         ==  
-=================================  
 
 Audio:
 	SFX:
