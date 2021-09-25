@@ -70,6 +70,9 @@ clock = pygame.time.Clock()
 # Load static images
 background_image = pygame.image.load("assets/Images/background.png").convert()
 
+#darkness_image = pygame.image.load("assets/Images/darkness.png").convert_alpha()
+darkness_image = pygame.image.load("assets/Images/subtle_darkness.png").convert_alpha() # Not as dark
+
 # Load the font and set the font size
 font = pygame.font.Font("assets/Fonts/upheavtt.ttf", 14)
 
@@ -226,8 +229,6 @@ def main():
             # Draw the sprites
                 # Note that these are drawn in the order they are called (overlap!)
         enemy_list.draw(draw_screen)
-        for laser in laser_list:
-            laser.draw(draw_screen) # this overrides the group draw function
         player.draw(draw_screen)
         terrain_ceiling.draw(draw_screen)
         terrain_ground.draw(draw_screen)
@@ -290,6 +291,12 @@ def main():
                     pygame.draw.line(draw_screen, (255,0,0), [f, g], [f, g] )
 #======== End of section ===========
 
+            # Draw the "darkness"
+        draw_screen.blit(darkness_image, [-320 + player.rect.x, -240 + player.rect.y])
+
+            # Draw lasers outside of the "darkness" since they are their own light source and shouldn't fade
+        for laser in laser_list:
+            laser.draw(draw_screen) # this overrides the group draw function
 
         # UI elements
         # Score
