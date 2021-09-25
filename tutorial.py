@@ -69,6 +69,9 @@ clock = pygame.time.Clock()
 # Load static images
 background_image = pygame.image.load("assets/Images/background.png").convert()
 
+#darkness_image = pygame.image.load("assets/Images/darkness.png").convert_alpha()
+darkness_image = pygame.image.load("assets/Images/subtle_darkness.png").convert_alpha() # Not as dark
+
 # Load the font and set the font size
 font = pygame.font.Font("assets/Fonts/upheavtt.ttf", 14)
 
@@ -223,10 +226,14 @@ def main():
             # Draw the sprites
                 # Note that these are drawn in the order they are called (overlap!)
         enemy_list.draw(draw_screen)
-        laser_list.draw(draw_screen)
         player.draw(draw_screen)
         terrain_ceiling.draw(draw_screen)
         terrain_ground.draw(draw_screen)
+
+            # Draw the "darkness"
+        draw_screen.blit(darkness_image, [-320 + player.rect.x, -240 + player.rect.y])
+
+        laser_list.draw(draw_screen)
 
         # UI elements
         # Score
