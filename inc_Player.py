@@ -33,7 +33,16 @@ class Player(pygame.sprite.Sprite):
         self.animation_time = 0 # animation delay speed
         self.shoot_time = 0  # delay between firing
         self.gun_loaded = 0  # ready to fire!
+        self.alive = True
+        self.alive_timer = 0
 
+    ''' Death
+        Handles the player dying
+    '''
+    def death(self):
+        if self.alive:
+            self.alive = False
+            self.alive_timer = pygame.time.get_ticks()
 
     '''  Update
         Handles animations and gun timing
@@ -57,23 +66,28 @@ class Player(pygame.sprite.Sprite):
         Movement functions; only move in that direction if it doesn't go offscreen
     '''
     def move_right(self):
-        if self.rect.x < 304:
-            self.rect.x += 2
+        if self.alive:
+            if self.rect.x < 304:
+                self.rect.x += 2
 
     def move_left(self):
-        if self.rect.x > 0:
-            self.rect.x -= 2
+        if self.alive:
+            if self.rect.x > 0:
+                self.rect.x -= 2
 
     def move_up(self):
-        if self.rect.y > 0:
-            self.rect.y -= 2
+        if self.alive:
+            if self.rect.y > 0:
+                self.rect.y -= 2
 
     def move_down(self):
-        if self.rect.y < 224:
-            self.rect.y += 2
+        if self.alive:
+            if self.rect.y < 224:
+                self.rect.y += 2
 
     ''' Draw
         Places the current animation frame image onto the passed screen
     '''
     def draw(self, win):
-        win.blit(self.image, self.rect)
+        if self.alive:
+            win.blit(self.image, self.rect)

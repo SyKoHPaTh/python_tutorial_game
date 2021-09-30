@@ -24,6 +24,7 @@ from inc_Player import Player
 from inc_Enemy import Enemy
 from inc_Lasers import Lasers
 from inc_Terrain import Terrain
+from inc_Shrapnel import Shrapnel
 
 # ----- Initialization -----
 # set Environment variables; default initial Window Position
@@ -88,6 +89,7 @@ terrain_ground = Terrain(1) # the terrain ground
     # Sprite Groups are used for multiples of the same thing
 enemy_list = pygame.sprite.Group() # Group of all enemy sprites
 laser_list = pygame.sprite.Group() # Group of all laser sprites
+shrapnel_list = pygame.sprite.Group() # Group of all shrapnel sprites
 
 # ----- Functions -----
 ''' Game Text
@@ -117,8 +119,9 @@ def main():
     # Prepare the sprite groups, make sure they are empty (good to do for new levels)
     enemy_list.empty()
     laser_list.empty()
+    shrapnel_list.empty()
 
-    player_alive = True # Flag used to keep the game loop going
+    game_loop = True # Flag used to keep the game loop going
     score = 0 # Player's score!
 
     # Start the music loop
@@ -126,7 +129,7 @@ def main():
     pygame.mixer.music.play( -1 ) # Starts the music
 
     # Actual game loop
-    while player_alive:
+    while game_loop:
         # -- Event handler --
         for event in pygame.event.get():
             if event.type == pygame.QUIT: # Close the window
@@ -189,24 +192,50 @@ def main():
         # Hit detection
             # Player crash into terrain
             if pygame.sprite.collide_mask(player, terrain_ceiling) or pygame.sprite.collide_mask(player, terrain_ground):
-                player_alive = False # Break the game loop flag = game over
+                if player.alive:
+                    for x in range(72):
+                        shrap = Shrapnel(1, player.rect.x, player.rect.y ) # "ship" shrapnel
+                        shrap.x_force = random.randrange(-40, 40) / 10
+                        shrap.y_force = random.randrange(-40, 40) / 10
+                        shrapnel_list.add(shrap)
+                player.death()
 
             # Lasers
             for laser in laser_list:
                 if laser.type == 0: # Player laser hit enemy
                     enemy_hit_list = pygame.sprite.spritecollide(laser, enemy_list, False, pygame.sprite.collide_mask)
-                    for enemy in enemy_hit_list:
+                    for enemy in enemy_hit_list: 
                         if enemy.alive:
                             enemy.alive = False
                             score += 100
                             sfx_enemy_die.play(); # sfx
+                            shrap = Shrapnel(2, enemy.rect.x, enemy.rect.y ) # "laser" shrapnel
+                            shrapnel_list.add(shrap)
+                            for x in range(17):
+                                shrap = Shrapnel(3, enemy.rect.x, enemy.rect.y ) # "laser" shrapnel
+                                shrap.x_force = random.randrange(-20, 20) / 10
+                                shrap.y_force = random.randrange(-20, 20) / 10
+                                shrapnel_list.add(shrap)
+
                             laser.kill()
                 if laser.type == 1: # Enemy Laser hits Player
                     if pygame.sprite.collide_mask(laser, player):
-                        player_alive = False # Break the game loop flag = game over
+                        if player.alive:
+                            for x in range(72):
+                                shrap = Shrapnel(1, player.rect.x, player.rect.y ) # "ship" shrapnel
+                                shrap.x_force = random.randrange(-40, 40) / 10
+                                shrap.y_force = random.randrange(-40, 40) / 10
+                                shrapnel_list.add(shrap)
+                        player.death()
                 # Laser hits terrain                        
                 if pygame.sprite.collide_mask(laser, terrain_ceiling) or pygame.sprite.collide_mask(laser, terrain_ground):
+                    shrap = Shrapnel(2, laser.rect.x, laser.rect.y ) # "laser" shrapnel
+                    shrapnel_list.add(shrap)
                     laser.kill()
+
+        if player.alive == False:
+            if pygame.time.get_ticks() > player.alive_timer + 5000:
+                game_loop = False
 
         # -- Sprite and Screen --
             # Call "update" for sprites
@@ -216,6 +245,8 @@ def main():
             # "update" the sprite groups
         enemy_list.update()
         laser_list.update()
+        shrapnel_list.update()
+
 
         # Screen Update
             # Draw the background
@@ -227,6 +258,7 @@ def main():
         player.draw(draw_screen)
         terrain_ceiling.draw(draw_screen)
         terrain_ground.draw(draw_screen)
+        shrapnel_list.draw(draw_screen)
 
         # UI elements
         # Score
