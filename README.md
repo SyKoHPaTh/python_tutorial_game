@@ -1,8 +1,8 @@
 Side-scolling Spaceship Shooter Game - Used for a Youtube Tutorial video
 
 This is a tutorial game!  Make for a Youtube Tutorial video.
-Watch the talk-though of the code here: 
-[shrapnel]
+Watch the talk-though of the code here:   
+[shrapnel] https://youtu.be/X6AN46VART4
 
 ==       Asset Credits         ==  
 
