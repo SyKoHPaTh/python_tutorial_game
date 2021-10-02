@@ -212,7 +212,7 @@ def main():
                             shrap = Shrapnel(2, enemy.rect.x, enemy.rect.y ) # "laser" shrapnel
                             shrapnel_list.add(shrap)
                             for x in range(17):
-                                shrap = Shrapnel(3, enemy.rect.x, enemy.rect.y ) # "laser" shrapnel
+                                shrap = Shrapnel(3, enemy.rect.x, enemy.rect.y ) # "explode" shrapnel
                                 shrap.x_force = random.randrange(-20, 20) / 10
                                 shrap.y_force = random.randrange(-20, 20) / 10
                                 shrapnel_list.add(shrap)
