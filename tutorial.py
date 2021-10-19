@@ -197,8 +197,6 @@ def main():
             if pygame.sprite.collide_mask(laser, terrain_ceiling) or pygame.sprite.collide_mask(laser, terrain_ground):
                 laser.kill()
 
-
-
         # -- Sprite and Screen --
             # Call "update" for sprites
         player.update()
