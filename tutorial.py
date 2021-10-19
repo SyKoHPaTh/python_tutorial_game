@@ -188,25 +188,25 @@ def main():
 
         # Hit detection
             # Player crash into terrain
-            if pygame.sprite.collide_mask(player, terrain_ceiling) or pygame.sprite.collide_mask(player, terrain_ground):
-                player_alive = False # Break the game loop flag = game over
+        if pygame.sprite.collide_mask(player, terrain_ceiling) or pygame.sprite.collide_mask(player, terrain_ground):
+            player_alive = False # Break the game loop flag = game over
 
             # Lasers
-            for laser in laser_list:
-                if laser.type == 0: # Player laser hit enemy
-                    enemy_hit_list = pygame.sprite.spritecollide(laser, enemy_list, False, pygame.sprite.collide_mask)
-                    for enemy in enemy_hit_list:
-                        if enemy.alive:
-                            enemy.alive = False
-                            score += 100
-                            sfx_enemy_die.play(); # sfx
-                            laser.kill()
-                if laser.type == 1: # Enemy Laser hits Player
-                    if pygame.sprite.collide_mask(laser, player):
-                        player_alive = False # Break the game loop flag = game over
-                # Laser hits terrain                        
-                if pygame.sprite.collide_mask(laser, terrain_ceiling) or pygame.sprite.collide_mask(laser, terrain_ground):
-                    laser.kill()
+        for laser in laser_list:
+            if laser.type == 0: # Player laser hit enemy
+                enemy_hit_list = pygame.sprite.spritecollide(laser, enemy_list, False, pygame.sprite.collide_mask)
+                for enemy in enemy_hit_list:
+                    if enemy.alive:
+                        enemy.alive = False
+                        score += 100
+                        sfx_enemy_die.play(); # sfx
+                        laser.kill()
+            if laser.type == 1: # Enemy Laser hits Player
+                if pygame.sprite.collide_mask(laser, player):
+                    player_alive = False # Break the game loop flag = game over
+            # Laser hits terrain                        
+            if pygame.sprite.collide_mask(laser, terrain_ceiling) or pygame.sprite.collide_mask(laser, terrain_ground):
+                laser.kill()
 
         # -- Sprite and Screen --
             # Call "update" for sprites
