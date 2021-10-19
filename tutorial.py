@@ -24,38 +24,32 @@ from inc_Player import Player
 from inc_Enemy import Enemy
 from inc_Lasers import Lasers
 from inc_Terrain import Terrain
+from inc_Alertbox import Alertbox
+from inc_Configure import Configure
+from inc_GameText import GameText
 
 # ----- Initialization -----
 # set Environment variables; default initial Window Position
-x = 100
-y = 100
+x = 0
+y = 30
+#calculate the "middle"
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
 
 # Call this function so the Pygame library can initialize itself
 pygame.init()
- 
-# Create screens for display
+
+# Canvas size, we draw to this "screen" and then it scales and displays on the screen
     # This is "classic arcade" size screen; big pixels, old school
 WIDTH = 320
 HEIGHT = 240
 
-    # used for scaling, so we can actually play it on modern size screens
-    # Note that "fullscreen" doesn't need this
-ratio = 5 
+# Initialize configuration
+configure = Configure(WIDTH, HEIGHT)
 
-    # Setup the "arcade" size screen
-screen = pygame.display.set_mode([ WIDTH, HEIGHT ])
-    # Copy for our screen that we will draw everything to
-draw_screen = screen.copy()
 
     # Window icon
 icon = pygame.image.load("assets/Images/icon.png")
 pygame.display.set_icon(icon)
-
-    # Window mode (scaled up by Ratio)
-screen = pygame.display.set_mode([ (WIDTH * ratio), (HEIGHT * ratio) ]) 
-    # Fullscreen mode (don't use ratio)
-#screen = pygame.display.set_mode([ (WIDTH), (HEIGHT) ], pygame.FULLSCREEN)
 
 # Hide the mouse
 pygame.mouse.set_visible(False)
@@ -70,7 +64,7 @@ clock = pygame.time.Clock()
 background_image = pygame.image.load("assets/Images/background.png").convert()
 
 # Load the font and set the font size
-font = pygame.font.Font("assets/Fonts/upheavtt.ttf", 14)
+gametext = GameText(configure.canvas, "assets/Fonts/upheavtt.ttf", 14)
 
 # Load Sound Effect(s) and Music
 sfx_player_shoot = pygame.mixer.Sound("assets/Audio/SF1.wav") 
@@ -79,6 +73,15 @@ sfx_enemy_die = pygame.mixer.Sound("assets/Audio/SF10.wav")
 #sfx_enemy_die.set_volume(0.1)
 # Music
 pygame.mixer.music.load( "assets/Audio/93727__zgump__tr-loop-0416.wav" )
+
+# Change volume of sfx and music to match configure settings
+sfx_player_shoot.set_volume(0) 
+sfx_enemy_die.set_volume(0) 
+sfx_player_shoot.set_volume(0) 
+pygame.mixer.music.set_volume(0)
+
+# Setup "floating" sub windows; used for subscreens
+modal = Alertbox(configure)
 
 # Setup the sprites
 player = Player() # player (from the inc_Player.py class)
@@ -89,23 +92,7 @@ terrain_ground = Terrain(1) # the terrain ground
 enemy_list = pygame.sprite.Group() # Group of all enemy sprites
 laser_list = pygame.sprite.Group() # Group of all laser sprites
 
-# ----- Functions -----
-''' Game Text
-        Objective
-            Handles the fancy stuff for placing pretty text on the screen
-        Parameter
-            text    the text we want to display
-            x       x location of the text
-            y       y location of the text
-            centered    do fancy math to place the text centered at x
-'''
-def game_text(text, x, y, centered):
-    if centered == True:
-        x = (x - len(text) * 4)
-    text_render = font.render(text, True, (255, 255, 255)) # RGB 
-    draw_screen.blit(text_render, [x, y])
-
-''' Main Game Loop
+''' ----- Main Game Loop -----
     Everything happens here!
 '''
 def main():
@@ -133,7 +120,9 @@ def main():
                 return "quit"
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE: # Escape Key
-                    return "quit";
+                    status = modal.pause()
+                    if status == 'quit':
+                        return 'quit';
 
         # Key Polling, handles "key up" and "key down" actions
         key = pygame.key.get_pressed()
@@ -188,25 +177,27 @@ def main():
 
         # Hit detection
             # Player crash into terrain
-            if pygame.sprite.collide_mask(player, terrain_ceiling) or pygame.sprite.collide_mask(player, terrain_ground):
-                player_alive = False # Break the game loop flag = game over
+        if pygame.sprite.collide_mask(player, terrain_ceiling) or pygame.sprite.collide_mask(player, terrain_ground):
+            player_alive = False # Break the game loop flag = game over
 
             # Lasers
-            for laser in laser_list:
-                if laser.type == 0: # Player laser hit enemy
-                    enemy_hit_list = pygame.sprite.spritecollide(laser, enemy_list, False, pygame.sprite.collide_mask)
-                    for enemy in enemy_hit_list:
-                        if enemy.alive:
-                            enemy.alive = False
-                            score += 100
-                            sfx_enemy_die.play(); # sfx
-                            laser.kill()
-                if laser.type == 1: # Enemy Laser hits Player
-                    if pygame.sprite.collide_mask(laser, player):
-                        player_alive = False # Break the game loop flag = game over
-                # Laser hits terrain                        
-                if pygame.sprite.collide_mask(laser, terrain_ceiling) or pygame.sprite.collide_mask(laser, terrain_ground):
-                    laser.kill()
+        for laser in laser_list:
+            if laser.type == 0: # Player laser hit enemy
+                enemy_hit_list = pygame.sprite.spritecollide(laser, enemy_list, False, pygame.sprite.collide_mask)
+                for enemy in enemy_hit_list:
+                    if enemy.alive:
+                        enemy.alive = False
+                        score += 100
+                        sfx_enemy_die.play(); # sfx
+                        laser.kill()
+            if laser.type == 1: # Enemy Laser hits Player
+                if pygame.sprite.collide_mask(laser, player):
+                    player_alive = False # Break the game loop flag = game over
+            # Laser hits terrain                        
+            if pygame.sprite.collide_mask(laser, terrain_ceiling) or pygame.sprite.collide_mask(laser, terrain_ground):
+                laser.kill()
+
+
 
         # -- Sprite and Screen --
             # Call "update" for sprites
@@ -219,25 +210,21 @@ def main():
 
         # Screen Update
             # Draw the background
-        draw_screen.blit(background_image, [0, 0])
+        configure.canvas.blit(background_image, [0, 0])
             # Draw the sprites
                 # Note that these are drawn in the order they are called (overlap!)
-        enemy_list.draw(draw_screen)
-        laser_list.draw(draw_screen)
-        player.draw(draw_screen)
-        terrain_ceiling.draw(draw_screen)
-        terrain_ground.draw(draw_screen)
+        enemy_list.draw(configure.canvas)
+        laser_list.draw(configure.canvas)
+        player.draw(configure.canvas)
+        terrain_ceiling.draw(configure.canvas)
+        terrain_ground.draw(configure.canvas)
 
         # UI elements
         # Score
         text = str(score)
-        game_text(text, 160, 10, True)
+        gametext.text(text, 160, 10, True, False, False)
 
-
-            # Scale the draw screen to display screen
-        screen.blit(pygame.transform.scale(draw_screen, screen.get_rect().size), (0, 0) ) 
-            # place the screen on the display via pygame
-        pygame.display.flip()
+        configure.display()
 
             # Limit to 60 fps
         clock.tick(60)
