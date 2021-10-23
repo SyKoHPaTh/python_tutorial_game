@@ -21,7 +21,7 @@ class GameText(object):
         self.screen = screen
         self.font_size = font_size
 
-    def text(self, text, x, y, centered, flashing, button):
+    def text(self, text, x, y, centered, flashing):
 
         if isinstance(text, list):
             for line in text:
@@ -38,12 +38,6 @@ class GameText(object):
                 else:
                     text_render = self.font.render(line, True, (200, 200, 200)) 
 
-                if button != False:
-                    #pygame.draw.rect(self.screen, button, (pos_x - pos_x, y, self.font_size * len(line), self.font_size) )
-                    if centered == True:
-                        pygame.draw.rect(self.screen, button, (pos_x - (self.font_size * len(text) / 4), y, self.font_size * len(line), self.font_size) )
-                    else:
-                        pygame.draw.rect(self.screen, button, (pos_x - 2, y, self.font_size * len(line), self.font_size) )
 
 
                 self.screen.blit(text_render_bg, [ (pos_x + 1), (y + 1)])
@@ -64,14 +58,6 @@ class GameText(object):
                 if flash == 3: text_render = self.font.render(text, True, (255, 255, 255)) 
             else:
                 text_render = self.font.render(text, True, (200, 200, 200)) 
-
-            if button != False:
-                #pygame.draw.rect(self.screen, button, (x - 2, y, self.font_size * len(text), self.font_size) )
-                if centered == True:
-                    pygame.draw.rect(self.screen, button, (x - ( (self.font_size * len(text)) / 4), y, self.font_size * len(text), self.font_size) )
-                else:
-                    pygame.draw.rect(self.screen, button, (x - 2, y, self.font_size * len(text), self.font_size) )
-
 
             self.screen.blit(text_render_bg, [ (x + 1), (y + 1)])
             self.screen.blit(text_render, [x, y])

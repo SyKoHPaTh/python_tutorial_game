@@ -24,9 +24,10 @@ from inc_Player import Player
 from inc_Enemy import Enemy
 from inc_Lasers import Lasers
 from inc_Terrain import Terrain
-from inc_Alertbox import Alertbox
+from inc_Modal import Modal
 from inc_Configure import Configure
 from inc_GameText import GameText
+from inc_Controls import Controls
 
 # ----- Initialization -----
 # set Environment variables; default initial Window Position
@@ -45,7 +46,6 @@ HEIGHT = 240
 
 # Initialize configuration
 configure = Configure(WIDTH, HEIGHT)
-
 
     # Window icon
 icon = pygame.image.load("assets/Images/icon.png")
@@ -80,8 +80,11 @@ sfx_enemy_die.set_volume(0)
 sfx_player_shoot.set_volume(0) 
 pygame.mixer.music.set_volume(0)
 
+# Initialize Controls
+controls = Controls(configure)
+
 # Setup "floating" sub windows; used for subscreens
-modal = Alertbox(configure)
+modal = Modal(configure)
 
 # Setup the sprites
 player = Player() # player (from the inc_Player.py class)
@@ -115,45 +118,54 @@ def main():
     # Actual game loop
     while player_alive:
         # -- Event handler --
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT: # Close the window
+        key_list = controls.get_key()
+        # loop through key dist
+        for key in key_list:
+            if key['label'] == 'QUIT':
                 return "quit"
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE: # Escape Key
-                    status = modal.pause()
-                    if status == 'quit':
-                        return 'quit';
+            if key['label'] == 'Menu':
+                status = modal.pause()
+                if status == 'quit':
+                    return 'quit'
 
-        # Key Polling, handles "key up" and "key down" actions
-        key = pygame.key.get_pressed()
-        # Player "Fire" button
-        if key[pygame.K_SPACE] == True: # pressing button
-            if player_fire_button == 'UP':
-                player_fire_button = 'PRESSED'
+        # Polling = keys being held down
+        polling_list = controls.get_key_pressed()
+        for key_pressed in polling_list:
+            # Player "Fire" button
+            if key_pressed['label'] == 'Fire': # pressing button
+                if key_pressed['value'] == True:
+                    if player_fire_button == 'UP':
+                        player_fire_button = 'PRESSED'
 
-            if player.gun_loaded == 1:
-                player.gun_loaded = 0 # disable flag
-                sfx_player_shoot.play(); # Play the SFX
+                    if player.gun_loaded == 1:
+                        player.gun_loaded = 0 # disable flag
+                        sfx_player_shoot.play(); # Play the SFX
 
-                # Initialize a new laser, and add it to the group
-                laser = Lasers()
-                laser.rect.x = player.rect.x
-                laser.rect.y = player.rect.y
-                laser.type = 0 # flag saying it is a player's laser
-                laser_list.add(laser)
+                        # Initialize a new laser, and add it to the group
+                        laser = Lasers()
+                        laser.rect.x = player.rect.x
+                        laser.rect.y = player.rect.y
+                        laser.type = 0 # flag saying it is a player's laser
+                        laser_list.add(laser)
 
-        elif key[pygame.K_SPACE] == False: # released button
-            if player_fire_button == 'DOWN':
-                player_fire_button = 'RELEASE'
+                        controls.rumble(configure.controller_rumble_id, 10);
 
-        if key[pygame.K_LEFT]:
-            player.move_left()
-        if key[pygame.K_RIGHT]:
-            player.move_right()
-        if key[pygame.K_UP]:
-            player.move_up()
-        if key[pygame.K_DOWN]:
-            player.move_down()
+
+                else: # released button
+                    if player_fire_button == 'DOWN':
+                        player_fire_button = 'RELEASE'
+
+            # Movement
+            if key_pressed['value'] == True:
+                if key_pressed['label'] == 'Up':
+                    player.move_up()
+                if key_pressed['label'] == 'Down':
+                    player.move_down()
+                if key_pressed['label'] == 'Left':
+                    player.move_left()
+                if key_pressed['label'] == 'Right':
+                    player.move_right()
+
 
         # -- Game Logic --
         # Enemies
@@ -179,6 +191,7 @@ def main():
             # Player crash into terrain
         if pygame.sprite.collide_mask(player, terrain_ceiling) or pygame.sprite.collide_mask(player, terrain_ground):
             player_alive = False # Break the game loop flag = game over
+            controls.rumble(configure.controller_rumble_id, 1000);
 
             # Lasers
         for laser in laser_list:
@@ -190,6 +203,8 @@ def main():
                         score += 100
                         sfx_enemy_die.play(); # sfx
                         laser.kill()
+                        controls.rumble(configure.controller_rumble_id, 100);
+
             if laser.type == 1: # Enemy Laser hits Player
                 if pygame.sprite.collide_mask(laser, player):
                     player_alive = False # Break the game loop flag = game over
@@ -220,7 +235,7 @@ def main():
         # UI elements
         # Score
         text = str(score)
-        gametext.text(text, 160, 10, True, False, False)
+        gametext.text(text, 160, 10, True, False)
 
         configure.display()
 
