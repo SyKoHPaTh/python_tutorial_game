@@ -450,6 +450,8 @@ class Modal():
             # Rumble Support
             pygame.draw.rect(self.configure.canvas, (100, 100, 100), (140, 150, 110, 14 ) )
             self.gametext.text( "Rumble", 80, 150, False, False)
+            if rumble_name == False:
+                rumble_name = ''
             self.gametext.text( rumble_name, 150, 150, False, False)
 
 

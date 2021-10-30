@@ -29,12 +29,14 @@ from inc_Configure import Configure
 from inc_GameText import GameText
 from inc_Controls import Controls
 
+from screen_Title import Title
 # ----- Initialization -----
 # set Environment variables; default initial Window Position
 x = 0
 y = 30
 #calculate the "middle"
-os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y) # absolute window positioning
+os.environ['SDL_VIDEO_CENTERED'] = '1' # Use this option to center the window when it is created
 
 # Call this function so the Pygame library can initialize itself
 pygame.init()
@@ -95,10 +97,14 @@ terrain_ground = Terrain(1) # the terrain ground
 enemy_list = pygame.sprite.Group() # Group of all enemy sprites
 laser_list = pygame.sprite.Group() # Group of all laser sprites
 
+    # -- Screen Setups
+title_screen = Title(configure, gametext)
+
+
 ''' ----- Main Game Loop -----
     Everything happens here!
 '''
-def main():
+def game():
     # startup variables
         # how often enemies appear
     enemy_spawn_timer = pygame.time.get_ticks() + 9000 # extra delay (9seconds)
@@ -245,6 +251,28 @@ def main():
     # Out of the Game Loop
     pygame.mixer.music.stop() # Stop the music playlist
 
+    return 'title'
+
+
+# ----- Main Loop
+def main():
+    done = False
+
+    action = "title"
+
+    # Screen looping: Title -> Demo -> HighScores ...
+    while not done:
+        if action == 'quit':
+            done = True
+        elif action == "title":
+            action = title_screen.display()
+        elif action == "gameplay":
+            action = game()
+        #elif action == "demo":
+        #    action = demo() # This could be a function that shows demo gameplay
+        #elif action == "highscores":
+        #    action = high_scores() # This could show a high scores screen
+
 
 ''' Call the main function
     This section is important because it tells Python what to call when it is run
@@ -252,5 +280,6 @@ def main():
 if __name__ == '__main__':
     main()
  
+
 # Gracefully shutdown PyGame
 pygame.quit()
