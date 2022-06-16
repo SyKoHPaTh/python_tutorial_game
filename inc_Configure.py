@@ -20,7 +20,7 @@ class Configure():
 
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self.screen_fit = 'width' # stretch, width, height; fit to screen if aspect ratio mismatch
+        self.screen_fit = 'stretch' # stretch, width, height; fit to screen if aspect ratio mismatch
         self.fullscreen = False # pygame.display.toggle_fullscreen()
         self.borderless = False # borderless window
         self.screen_ratio = self.screen_width / self.screen_height # recalculated every time the screen size changes
@@ -67,7 +67,7 @@ class Configure():
     def display(self):
             # Scale the draw screen to display screen, based on configure settings
         if self.screen_fit == 'stretch': # stretch the canvas to the screen size (distorts if mismatch ratio of 320x240)
-            self.screen.blit(pygame.transform.scale(self.canvas, screen.get_rect().size), (0, 0) ) 
+            self.screen.blit(pygame.transform.scale(self.canvas, self.screen.get_rect().size), (0, 0) ) 
         elif self.screen_fit == 'width': # fit canvas width to screen
             canvas_height = int( self.screen_width / self.draw_ratio )
             self.screen.blit(pygame.transform.scale(self.canvas, [self.screen_width, canvas_height]), (0, (self.screen_height - canvas_height) // 2 ) ) 
