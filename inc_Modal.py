@@ -62,7 +62,7 @@ class Modal():
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1: # LMB
                         for item in menu_buttons:
-                            item.click(mpos_x, mpos_y)
+                            item.click( (mpos_x, mpos_y) )
                             if item.name == 'Resume' and item.is_active:
                                 wait_for_response = False
                                 status = 'resume'
@@ -84,7 +84,7 @@ class Modal():
            # Draw the menu buttons
             for item in menu_buttons:
                 if item.is_visible:
-                    item.hover(mpos_x, mpos_y) # check if the mouse is hovering over the button
+                    item.hover( (mpos_x, mpos_y) ) # check if the mouse is hovering over the button
                     item.draw() # draw the button
 
             self.configure.display()
@@ -131,7 +131,7 @@ class Modal():
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1: # LMB
                         for item in menu_buttons:
-                            item.click(mpos_x, mpos_y)
+                            item.click( (mpos_x, mpos_y) )
                             if item.name == 'Video' and item.is_active:
                                 status = self.video()
                                 if status == 'quit':
@@ -157,7 +157,7 @@ class Modal():
            # Draw the menu buttons
             for item in menu_buttons:
                 if item.is_visible:
-                    item.hover(mpos_x, mpos_y) # check if the mouse is hovering over the button
+                    item.hover( (mpos_x, mpos_y) ) # check if the mouse is hovering over the button
                     item.draw() # draw the button
 
             self.configure.display()
@@ -248,7 +248,7 @@ class Modal():
                         
                         # Check if button was clicked, and actions
                         for item in menu_buttons:
-                            item.click(mpos_x, mpos_y)
+                            item.click( (mpos_x, mpos_y) )
                             if item.name == '<' and item.is_active:
                                 screen_mode_select += 1
                                 if screen_mode_select >= len(screen_modes):
@@ -315,7 +315,7 @@ class Modal():
             # Draw the menu buttons
             for item in menu_buttons:
                 if item.is_visible:
-                    item.hover(mpos_x, mpos_y) # check if the mouse is hovering over the button
+                    item.hover( (mpos_x, mpos_y) ) # check if the mouse is hovering over the button
                     item.draw() # draw the button
 
             self.configure.display()
@@ -409,7 +409,7 @@ class Modal():
 
                         # Check if button was clicked, and actions
                         for item in menu_buttons:
-                            item.click(mpos_x, mpos_y)
+                            item.click( (mpos_x, mpos_y) )
                             if item.name == 'Cancel' and item.is_active:
                                 # Load settings from file (don't save control changes)
                                 self.configure.load()
@@ -458,7 +458,7 @@ class Modal():
             # Draw the menu buttons
             for item in menu_buttons:
                 if item.is_visible:
-                    item.hover(mpos_x, mpos_y) # check if the mouse is hovering over the button
+                    item.hover( (mpos_x, mpos_y) ) # check if the mouse is hovering over the button
                     item.draw() # draw the button
 
             self.configure.display()
