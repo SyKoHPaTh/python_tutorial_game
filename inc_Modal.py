@@ -187,7 +187,17 @@ class Modal():
             display_option_select = 2 # Borderless Window
 
         # Current display mode: List in format [(height, width)]
-        screen_modes = pygame.display.list_modes()
+        # We will restrict screen modes to only ones that match our desired ratio
+        # OTHERWISE: we can stretch the screen and make it look fugly, OR we can black bar it OR we can cut portions of the view = all bleh
+        screen_modes = []
+        all_screen_modes = pygame.display.list_modes()
+
+        for mode in all_screen_modes:
+            width = mode[0]
+            height = mode[1]
+            ratio = width / height
+            if ratio == self.configure.screen_ratio:
+                screen_modes.append(mode)
 
         screen_mode_select = 0 # default to first in list
         counter = 0
@@ -219,7 +229,6 @@ class Modal():
             # adjust for screen size scaling
             mpos_x = mpos_x / (self.configure.screen_width / self.configure.canvas.get_width())
             mpos_y = mpos_y / (self.configure.screen_height / self.configure.canvas.get_height())
-
 
             # ----- Event Handler
             for event in pygame.event.get():

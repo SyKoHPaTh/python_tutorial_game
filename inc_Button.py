@@ -42,7 +42,6 @@ class Button(object):
 
         if self.rect.collidepoint(mouse):
             self.is_active = True
-            print("button active: ", self.name)
         else:
             self.is_active = False
 
@@ -52,7 +51,6 @@ class Button(object):
 
         if self.rect.collidepoint(mouse):
             self.is_hover = True
-            print("hover over button", self.name)
         else:
             self.is_hover = False
 
