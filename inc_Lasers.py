@@ -8,10 +8,11 @@ from inc_SpriteSheet import SpriteSheet
     Handles both the player laser, and the enemy laser
 
     Ammo type:
-        0 = straight shot
-        1 = homing shot
-        2 = chase shot
-        3 = calculated aimed shot
+        0 = straight shot               bullet
+        1 = spread shot                 cut
+        2 = chase shot                  bubble
+        3 = calculated aimed shot       x
+        4 = cutting laser               beam
 '''
 class Lasers(pygame.sprite.Sprite):
     ''' Init
@@ -24,10 +25,18 @@ class Lasers(pygame.sprite.Sprite):
 
         sprite_sheet = SpriteSheet("assets/Images/sprite_sheet.png")
             # enemy bullet (red)
-        image = sprite_sheet.get_image(48, 16, 16, 16);
+        image = sprite_sheet.get_image(48, 0, 16, 16);
         self.frames.append(image) # Frame 0 = Enemy
             # player bullet (blue)
-        image = sprite_sheet.get_image(48, 0, 16, 16);
+        image = sprite_sheet.get_image(64, 0, 16, 16); # bullet
+        self.frames.append(image) # Frame 1 = player
+        image = sprite_sheet.get_image(64, 16, 16, 16); # cut
+        self.frames.append(image) # Frame 1 = player
+        image = sprite_sheet.get_image(64, 32, 16, 16); # bubble
+        self.frames.append(image) # Frame 1 = player
+        image = sprite_sheet.get_image(64, 48, 16, 16); # x
+        self.frames.append(image) # Frame 1 = player
+        image = sprite_sheet.get_image(64, 64, 16, 16); # beam
         self.frames.append(image) # Frame 1 = player
 
         self.mask = pygame.mask.from_surface(image) # create a mask for collision (same for both lasers)
@@ -57,11 +66,12 @@ class Lasers(pygame.sprite.Sprite):
             self.x_force = self.speed
             self.y_force = 0
         elif self.ammo == 1: # "Homing"
-            self.enemy_target = enemy_list
+            self.x_force = self.speed
         elif self.ammo == 2: # "Chase"
             self.enemy_target = enemy_list
         elif self.ammo == 3: # "Targeted"
             self.calculate_target(enemy_list)
+
 
     '''  Update
         Handles animations and gun timing
@@ -69,13 +79,17 @@ class Lasers(pygame.sprite.Sprite):
     def update(self):
         # Move the laser
 
-        if self.ammo == 0: # This is the "standard" linear way
+        if self.ammo == 0 or self.ammo == 4: # This is the "standard" linear way
             if self.player_laser == True: # player
                 self.rect.x += self.speed
             else: # enemy
                 self.rect.x -= 2
 
-        elif self.ammo == 1: # Homing Shot
+        elif self.ammo == 1: # spread Shot
+            self.rect.x += self.x_force
+            self.rect.y += self.y_force
+
+        elif self.ammo == 2: # homing shot
             # If there is an enemy...
             list_size = len( self.enemy_target )
             if list_size > 0:
@@ -85,36 +99,20 @@ class Lasers(pygame.sprite.Sprite):
                     target_y = enemy.rect.y
                     break
 
-                if self.rect.x < target_x: self.rect.x += self.speed / 2
-                if self.rect.x > target_x: self.rect.x -= self.speed / 2
-                if self.rect.y < target_y: self.rect.y += self.speed / 2
-                if self.rect.y > target_y: self.rect.y -= self.speed / 2
-
-            else:
-                self.rect.x += self.speed
-
-        elif self.ammo == 2:
-            # If there is an enemy...
-            list_size = len( self.enemy_target )
-            if list_size > 0:
-                for enemy in self.enemy_target:
-                    # Just "target" the first one!
-                    target_x = enemy.rect.x
-                    target_y = enemy.rect.y
-                    break
-
-                if self.rect.x < target_x: self.x_force += self.speed / 10
-                if self.rect.x > target_x: self.x_force -= self.speed / 10
-                if self.rect.y < target_y: self.y_force += self.speed / 10
-                if self.rect.y > target_y: self.y_force -= self.speed / 10
+                if self.rect.x < target_x: self.x_force += self.speed / 20
+                if self.rect.x > target_x: self.x_force -= self.speed / 20
+                if self.rect.y < target_y: self.y_force += self.speed / 20
+                if self.rect.y > target_y: self.y_force -= self.speed / 20
 
                 if self.x_force > self.speed: self.x_force = self.speed
                 if self.x_force < -self.speed: self.x_force = -self.speed
                 if self.y_force > self.speed: self.y_force = self.speed
                 if self.y_force < -self.speed: self.y_force = -self.speed
             else:
-                self.x_force = self.speed
-                self.y_force = 0
+                # Keep the bullets from just sitting there on the screen
+                if self.x_force == 0 and self.y_force == 0:
+                    self.x_force = self.speed / 2
+                
 
             # apply the "force" to our coordinates
             self.x_float += self.x_force
@@ -127,7 +125,7 @@ class Lasers(pygame.sprite.Sprite):
             # Calculate the angle to rotate the sprite in the direction of the force
             self.angle = math.atan2( self.y_force, self.x_force )
 
-        elif self.ammo == 3:
+        elif self.ammo == 3: # target shot
             # apply the "force" to our coordinates (make the laser move along the line)
             self.x_float += self.x_force
             self.y_float += self.y_force
@@ -137,13 +135,17 @@ class Lasers(pygame.sprite.Sprite):
             self.rect.y = int(self.y_float)
 
 
-        self.image = self.frames[self.player_laser] # default frame
+        if self.player_laser == True: # Determine bullet sprite
+            self.image = self.frames[self.ammo + 1]
+        else:
+            self.image = self.frames[0]
 
         # bullet offscreen
         if self.rect.x < -16:
             self.kill()
         if self.rect.x > 320:
             self.kill()
+
 
     ''' Draw
         Places the current animation frame image onto the passed screen

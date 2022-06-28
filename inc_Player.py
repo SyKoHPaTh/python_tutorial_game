@@ -14,12 +14,26 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.animation_frames = []
         sprite_sheet = SpriteSheet("assets/Images/sprite_sheet.png")
-            # player sprites
+            # player sprites - middle
         image = sprite_sheet.get_image(0, 0, 16, 16)
         self.animation_frames.append(image)
         image = sprite_sheet.get_image(16, 0, 16, 16)
         self.animation_frames.append(image) 
         image = sprite_sheet.get_image(32, 0, 16, 16)
+        self.animation_frames.append(image) 
+            # player sprites - up
+        image = sprite_sheet.get_image(0, 48, 16, 16) # 3
+        self.animation_frames.append(image)
+        image = sprite_sheet.get_image(16, 48, 16, 16)
+        self.animation_frames.append(image) 
+        image = sprite_sheet.get_image(32, 48, 16, 16)
+        self.animation_frames.append(image) 
+            # player sprites - down
+        image = sprite_sheet.get_image(0, 64, 16, 16) # 6
+        self.animation_frames.append(image)
+        image = sprite_sheet.get_image(16, 64, 16, 16)
+        self.animation_frames.append(image) 
+        image = sprite_sheet.get_image(32, 64, 16, 16)
         self.animation_frames.append(image) 
 
         self.image = self.animation_frames[0] # initial frame
@@ -31,8 +45,9 @@ class Player(pygame.sprite.Sprite):
         self.rect.y = 120 # player init location (vertical)
         self.frame = 1 # current animation frame
         self.animation_time = 0 # animation delay speed
+        self.animation_status = "MIDDLE"
         self.shoot_time = 0  # delay between firing
-        self.fire_delay = 500 # set this to "really slow" to demo the laser angles and stuff
+        self.fire_delay = 100 # set this to "really slow" to demo the laser angles and stuff
         self.lives = 3
 
         self.respawn()  # Move re-callable initialization variables
@@ -49,6 +64,8 @@ class Player(pygame.sprite.Sprite):
         self.gun_loaded = 0  # ready to fire!
         self.invincible_timer = pygame.time.get_ticks() + 5000
         self.draw_flag = True
+        self.ammo_type = 0 # straight bullet
+        self.laser_part = 5
 
     ''' Death
         Handles the player dying
@@ -73,8 +90,13 @@ class Player(pygame.sprite.Sprite):
             self.animation_time = pygame.time.get_ticks()
             self.frame = self.frame + 1
 
-        if self.frame > 2: # reset animation loop
+        # reset animation loop
+        if self.animation_status == 'MIDDLE' and self.frame > 2: 
             self.frame = 0
+        if self.animation_status == 'UP' and (self.frame > 5 or self.frame < 3):
+            self.frame = 3
+        if self.animation_status == 'DOWN' and (self.frame > 8 or self.frame < 6):
+            self.frame = 6
 
         self.image = self.animation_frames[self.frame]
 
@@ -93,11 +115,13 @@ class Player(pygame.sprite.Sprite):
 
     def move_up(self):
         if self.alive:
+            self.animation_status = 'UP'
             if self.rect.y > 0:
                 self.rect.y -= 2
 
     def move_down(self):
         if self.alive:
+            self.animation_status = 'DOWN'
             if self.rect.y < 224:
                 self.rect.y += 2
 

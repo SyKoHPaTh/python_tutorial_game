@@ -24,7 +24,7 @@ import math
 from inc_Player import Player
 from inc_Enemy import Enemy
 from inc_Lasers import Lasers
-from inc_Terrain import Terrain
+from inc_Level import Level
 from inc_Shrapnel import Shrapnel
 from inc_Modal import Modal
 from inc_Configure import Configure
@@ -81,8 +81,7 @@ modal = Modal(configure)
 
 # Setup the sprites
 player = Player() # player (from the inc_Player.py class)
-terrain_ceiling = Terrain(0) # the terrain ceiling
-terrain_ground = Terrain(1) # the terrain ground
+level_data = Level()
 
     # Sprite Groups are used for multiples of the same thing
 enemy_list = pygame.sprite.Group() # Group of all enemy sprites
@@ -110,14 +109,6 @@ def game():
     game_loop = True # Flag used to keep the game loop going
     score = 0 # Player's score!
 
-    ''' Laser type:
-        0   standard 
-        1   Homing
-        2   Chase
-        3   Targeted
-    '''
-    ammo_type = 3
-
     # Start the music loop
         # Enable music Loop by passing -1 to "repeat"
     pygame.mixer.music.play( -1 ) # Starts the music
@@ -144,17 +135,40 @@ def game():
                     player_fire_button = 'PRESSED'
 
                 if player.gun_loaded == 1:
+                    if player.ammo_type == 0:
+                        player.fire_delay = 200
+                    if player.ammo_type == 1:
+                        laser = Lasers(player.rect.x, player.rect.y, enemy_list, player.ammo_type, True)
+                        laser.y_force = 1
+                        laser_list.add(laser)
+                        laser = Lasers(player.rect.x, player.rect.y, enemy_list, player.ammo_type, True)
+                        laser.y_force = -1
+                        laser_list.add(laser)
+                        player.fire_delay = 500
+                    if player.ammo_type == 2:
+                        player.fire_delay = 300
+                    if player.ammo_type == 3:
+                        player.fire_delay = 400
+                    if player.ammo_type == 4:
+                        player.laser_part -= 1
+                        if player.laser_part < 1:
+                            player.laser_part = 5
+                            player.fire_delay = 1000
+                        else:
+                            player.fire_delay = 50
+
                     player.gun_loaded = 0 # disable flag
                     configure.play(0); # Play the SFX
 
                     # Initialize a new laser, and add it to the group
-                    laser = Lasers(player.rect.x, player.rect.y, enemy_list, ammo_type, True)
+                    laser = Lasers(player.rect.x, player.rect.y, enemy_list, player.ammo_type, True)
                     laser_list.add(laser)
 
             elif key[pygame.K_SPACE] == False: # released button
                 if player_fire_button == 'DOWN':
                     player_fire_button = 'RELEASE'
 
+        player.animation_status = 'MIDDLE'
         if key[pygame.K_LEFT]:
             player.move_left()
         if key[pygame.K_RIGHT]:
@@ -169,9 +183,7 @@ def game():
             # spawn an enemy
         if pygame.time.get_ticks() > enemy_spawn_timer + 1000:
             enemy_spawn_timer = pygame.time.get_ticks()
-            enemy = Enemy()
-            enemy.rect.x = 320 # place offscreen
-            enemy.rect.y = random.randrange(40, 184) # account for the terrain
+            enemy = Enemy(10, 320, random.randrange(40, 184)); # type, x (offscreen), y account for terrain
             enemy_list.add(enemy)
             # Enemy fire laser
         for enemy_ship in enemy_list:
@@ -180,10 +192,38 @@ def game():
                 # Initialize a new laser, and add it to the group
                 laser = Lasers(enemy_ship.rect.x, enemy_ship.rect.y, False, 0, False)
                 laser_list.add(laser)
+            # Player touch enemy
+        enemy_hit_list = pygame.sprite.spritecollide(player, enemy_list, False, pygame.sprite.collide_mask)
+        for enemy in enemy_hit_list: 
+            if enemy.type > 0 and enemy.type < 5:
+                configure.play(1); # sfx
+                controls.rumble(configure.controller_rumble_id, 100);
+                for x in range(5): # pick up powerup
+                    shrap = Shrapnel(2, enemy.rect.x, enemy.rect.y ) # "laser" shrapnel
+                    shrap.x_force = random.randrange(-10, 10) / 10
+                    shrap.y_force = random.randrange(-10, 10) / 10
+                    shrapnel_list.add(shrap)
+                player.ammo_type = enemy.type
+                enemy.kill()
+
+            if enemy.type > 9:
+                enemy.die()
+                configure.play(1); # sfx
+                controls.rumble(configure.controller_rumble_id, 100);
+                for x in range(72): # player explode
+                    shrap = Shrapnel(1, player.rect.x, player.rect.y ) # "ship" shrapnel
+                    shrap.x_force = random.randrange(-40, 40) / 10
+                    shrap.y_force = random.randrange(-40, 40) / 10
+                    shrapnel_list.add(shrap)
+                for x in range(17): # enemy explode
+                    shrap = Shrapnel(3, enemy.rect.x, enemy.rect.y ) # "enemy" shrapnel
+                    shrap.x_force = random.randrange(-20, 20) / 10
+                    shrap.y_force = random.randrange(-20, 20) / 10
+                    shrapnel_list.add(shrap)
 
         # Hit detection
         # Player crash into terrain
-        if pygame.sprite.collide_mask(player, terrain_ceiling) or pygame.sprite.collide_mask(player, terrain_ground):
+        if pygame.sprite.collide_mask(player, level_data.ceiling) or pygame.sprite.collide_mask(player, level_data.ground):
             if player.alive and player.invincible_timer == 0:
                 controls.rumble(configure.controller_rumble_id, 1000);
                 player.death()
@@ -198,16 +238,17 @@ def game():
             if laser.player_laser == True: # Player laser hit enemy
                 enemy_hit_list = pygame.sprite.spritecollide(laser, enemy_list, False, pygame.sprite.collide_mask)
                 for enemy in enemy_hit_list: 
-                    if enemy.alive:
-                        enemy.alive = False
+                    if enemy.type > 9:
+                        enemy.die()
                         score += 100
                         configure.play(1); # sfx
                         controls.rumble(configure.controller_rumble_id, 100);
                         shrap = Shrapnel(2, enemy.rect.x, enemy.rect.y ) # "laser" shrapnel
                         shrapnel_list.add(shrap)
-                        laser.kill()
+                        if player.ammo_type != 4:
+                            laser.kill()
                         for x in range(17):
-                            shrap = Shrapnel(3, enemy.rect.x, enemy.rect.y ) # "laser" shrapnel
+                            shrap = Shrapnel(3, enemy.rect.x, enemy.rect.y ) # "enemy" shrapnel
                             shrap.x_force = random.randrange(-20, 20) / 10
                             shrap.y_force = random.randrange(-20, 20) / 10
                             shrapnel_list.add(shrap)
@@ -224,10 +265,11 @@ def game():
                             shrapnel_list.add(shrap)
                         
             # Laser hits terrain                        
-            if pygame.sprite.collide_mask(laser, terrain_ceiling) or pygame.sprite.collide_mask(laser, terrain_ground):
+            if pygame.sprite.collide_mask(laser, level_data.ceiling) or pygame.sprite.collide_mask(laser, level_data.ground):
                 shrap = Shrapnel(2, laser.rect.x, laser.rect.y ) # "laser" shrapnel
                 shrapnel_list.add(shrap)
-                laser.kill()
+                if player.ammo_type != 4:
+                    laser.kill()
 
         # Handle Player-specific timers here
         if player.alive == False:
@@ -243,8 +285,7 @@ def game():
         # -- Sprite and Screen --
             # Call "update" for sprites
         player.update()
-        terrain_ceiling.update()
-        terrain_ground.update()
+        level_data.update()
             # "update" the sprite groups
         enemy_list.update()
         laser_list.update()
@@ -260,11 +301,10 @@ def game():
         enemy_list.draw(configure.canvas)
         player.draw(configure.canvas)
         shrapnel_list.draw(configure.canvas)
-        terrain_ceiling.draw(configure.canvas)
-        terrain_ground.draw(configure.canvas)
+        level_data.draw(configure.canvas)
 
 #======== This section completely optional ========== Trigonometry is fun!
-        if ammo_type == 3: # Targeting laser
+        if player.ammo_type == 3: # Targeting laser
             # Check to make sure there is, ya know, actually an enemy out there
             list_size = len( enemy_list )
             if list_size > 0:
@@ -286,8 +326,9 @@ def game():
                     angle = math.atan2( end_y - start_y, end_x - start_x );
 
                     # Draw a grey line from spaceship to enemy (ez way to do it!)
-                    pygame.draw.line(configure.canvas, (55, 55, 55), (start_x, start_y), (end_x, end_y) )
+                    #mpygame.draw.line(configure.canvas, (55, 55, 55), (start_x, start_y), (end_x, end_y) )
 
+                    '''
                     # Draw Green "points" along the line (calculated way to do it!)
                     b = 0
                     speed = distance / 10
@@ -298,6 +339,7 @@ def game():
                         f = f + (math.cos(angle) * speed);
                         g = g + (math.sin(angle) * speed);
                         pygame.draw.line(configure.canvas, (0, 255, 0), [f, g], [f, g] )
+                    '''
 
                     # Check if this is the closest distance (used for 'red line' below, outside of loop)
                     if distance < closest:

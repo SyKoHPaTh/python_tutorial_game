@@ -46,8 +46,10 @@ class Title:
 				elif event.type == pygame.KEYDOWN:
 					if event.key == pygame.K_ESCAPE:
 						status = 'quit'
-					else: # any other key
+					elif event.key == pygame.K_SPACE:						
 						status = 'gameplay'
+					else: # any other key
+						status = 'loop' # force space to start 'gameplay'
 
 			# Title Image
 			self.configure.canvas.blit(screen_title, [0, 0])
