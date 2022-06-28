@@ -15,11 +15,11 @@ class Player(pygame.sprite.Sprite):
         self.animation_frames = []
         sprite_sheet = SpriteSheet("assets/Images/sprite_sheet.png")
             # player sprites
-        image = sprite_sheet.get_image(0, 0, 16, 16);
+        image = sprite_sheet.get_image(0, 0, 16, 16)
         self.animation_frames.append(image)
-        image = sprite_sheet.get_image(16, 0, 16, 16);
+        image = sprite_sheet.get_image(16, 0, 16, 16)
         self.animation_frames.append(image) 
-        image = sprite_sheet.get_image(32, 0, 16, 16);
+        image = sprite_sheet.get_image(32, 0, 16, 16)
         self.animation_frames.append(image) 
 
         self.image = self.animation_frames[0] # initial frame
@@ -32,10 +32,23 @@ class Player(pygame.sprite.Sprite):
         self.frame = 1 # current animation frame
         self.animation_time = 0 # animation delay speed
         self.shoot_time = 0  # delay between firing
-        self.gun_loaded = 0  # ready to fire!
         self.fire_delay = 500 # set this to "really slow" to demo the laser angles and stuff
+        self.lives = 3
+
+        self.respawn()  # Move re-callable initialization variables
+
+    ''' Respawn
+        Player comes back to life
+        Reset player variables
+    '''
+    def respawn(self):
         self.alive = True
         self.alive_timer = 0
+        self.rect.x = 32 # player init location (horizontal)
+        self.rect.y = 120 # player init location (vertical)
+        self.gun_loaded = 0  # ready to fire!
+        self.invincible_timer = pygame.time.get_ticks() + 5000
+        self.draw_flag = True
 
     ''' Death
         Handles the player dying
@@ -43,7 +56,9 @@ class Player(pygame.sprite.Sprite):
     def death(self):
         if self.alive:
             self.alive = False
-            self.alive_timer = pygame.time.get_ticks()
+            self.lives -= 1
+            self.alive_timer = pygame.time.get_ticks() + 5000
+
 
     '''  Update
         Handles animations and gun timing
@@ -91,4 +106,13 @@ class Player(pygame.sprite.Sprite):
     '''
     def draw(self, win):
         if self.alive:
-            win.blit(self.image, self.rect)
+            if self.invincible_timer > 0:
+                if self.draw_flag == False:
+                    self.draw_flag = True
+                else:
+                    self.draw_flag = False
+            else:
+                self.draw_flag = True
+
+            if self.draw_flag == True:
+                win.blit(self.image, self.rect)

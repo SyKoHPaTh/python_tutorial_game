@@ -26,45 +26,41 @@ from inc_Enemy import Enemy
 from inc_Lasers import Lasers
 from inc_Terrain import Terrain
 from inc_Shrapnel import Shrapnel
+from inc_Modal import Modal
+from inc_Configure import Configure
+from inc_GameText import GameText
+from inc_Controls import Controls
 
+from screen_Title import Title
 # ----- Initialization -----
 # set Environment variables; default initial Window Position
-x = 100
-y = 100
-os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
+x = 0
+y = 30
+#calculate the "middle"
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y) # absolute window positioning
+os.environ['SDL_VIDEO_CENTERED'] = '1' # Use this option to center the window when it is created
 
 # Call this function so the Pygame library can initialize itself
 pygame.init()
- 
-# Create screens for display
+
+# Canvas size, we draw to this "screen" and then it scales and displays on the screen
     # This is "classic arcade" size screen; big pixels, old school
 WIDTH = 320
 HEIGHT = 240
 
-    # used for scaling, so we can actually play it on modern size screens
-    # Note that "fullscreen" doesn't need this
-ratio = 5 
-
-    # Setup the "arcade" size screen
-screen = pygame.display.set_mode([ WIDTH, HEIGHT ])
-    # Copy for our screen that we will draw everything to
-draw_screen = screen.copy()
+# Initialize configuration
+configure = Configure(WIDTH, HEIGHT)
 
     # Window icon
 icon = pygame.image.load("assets/Images/icon.png")
 pygame.display.set_icon(icon)
-
-    # Window mode (scaled up by Ratio)
-screen = pygame.display.set_mode([ (WIDTH * ratio), (HEIGHT * ratio) ]) 
-    # Fullscreen mode (don't use ratio)
-#screen = pygame.display.set_mode([ (WIDTH), (HEIGHT) ], pygame.FULLSCREEN)
 
 # Hide the mouse
 pygame.mouse.set_visible(False)
  
 # This sets the name of the window
 pygame.display.set_caption('Tutorial Spaceship Shooter')
- 
+  
 # Clock is used to cap framerate
 clock = pygame.time.Clock()
 
@@ -75,15 +71,13 @@ background_image = pygame.image.load("assets/Images/background.png").convert()
 darkness_image = pygame.image.load("assets/Images/subtle_darkness.png").convert_alpha() # Not as dark
 
 # Load the font and set the font size
-font = pygame.font.Font("assets/Fonts/upheavtt.ttf", 14)
+gametext = GameText(configure.canvas, "assets/Fonts/upheavtt.ttf", 14)
 
-# Load Sound Effect(s) and Music
-sfx_player_shoot = pygame.mixer.Sound("assets/Audio/SF1.wav") 
-sfx_player_shoot.set_volume(0.5) # change the volume of the sfx, can use for music too
-sfx_enemy_die = pygame.mixer.Sound("assets/Audio/SF10.wav") 
-#sfx_enemy_die.set_volume(0.1)
-# Music
-pygame.mixer.music.load( "assets/Audio/93727__zgump__tr-loop-0416.wav" )
+# Initialize Controls
+controls = Controls(configure)
+
+# Setup "floating" sub windows; used for subscreens
+modal = Modal(configure)
 
 # Setup the sprites
 player = Player() # player (from the inc_Player.py class)
@@ -95,26 +89,14 @@ enemy_list = pygame.sprite.Group() # Group of all enemy sprites
 laser_list = pygame.sprite.Group() # Group of all laser sprites
 shrapnel_list = pygame.sprite.Group() # Group of all shrapnel sprites
 
-# ----- Functions -----
-''' Game Text
-        Objective
-            Handles the fancy stuff for placing pretty text on the screen
-        Parameter
-            text    the text we want to display
-            x       x location of the text
-            y       y location of the text
-            centered    do fancy math to place the text centered at x
-'''
-def game_text(text, x, y, centered):
-    if centered == True:
-        x = (x - len(text) * 4)
-    text_render = font.render(text, True, (255, 255, 255)) # RGB 
-    draw_screen.blit(text_render, [x, y])
+    # -- Screen Setups
+title_screen = Title(configure, gametext)
 
-''' Main Game Loop
+
+''' ----- Main Game Loop -----
     Everything happens here!
 '''
-def main():
+def game():
     # startup variables
         # how often enemies appear
     enemy_spawn_timer = pygame.time.get_ticks() + 9000 # extra delay (9seconds)
@@ -143,31 +125,35 @@ def main():
     # Actual game loop
     while game_loop:
         # -- Event handler --
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT: # Close the window
+        key_list = controls.get_key()
+        # loop through key dist
+        for key in key_list:
+            if key['label'] == 'QUIT':
                 return "quit"
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE: # Escape Key
-                    return "quit";
+            if key['label'] == 'Menu':
+                status = modal.pause()
+                if status == 'quit':
+                    return 'quit'
 
         # Key Polling, handles "key up" and "key down" actions
         key = pygame.key.get_pressed()
         # Player "Fire" button
-        if key[pygame.K_SPACE] == True: # pressing button
-            if player_fire_button == 'UP':
-                player_fire_button = 'PRESSED'
+        if player.alive == True:
+            if key[pygame.K_SPACE] == True: # pressing button
+                if player_fire_button == 'UP':
+                    player_fire_button = 'PRESSED'
 
-            if player.gun_loaded == 1:
-                player.gun_loaded = 0 # disable flag
-                sfx_player_shoot.play(); # Play the SFX
+                if player.gun_loaded == 1:
+                    player.gun_loaded = 0 # disable flag
+                    configure.play(0); # Play the SFX
 
-                # Initialize a new laser, and add it to the group
-                laser = Lasers(player.rect.x, player.rect.y, enemy_list, ammo_type, True)
-                laser_list.add(laser)
+                    # Initialize a new laser, and add it to the group
+                    laser = Lasers(player.rect.x, player.rect.y, enemy_list, ammo_type, True)
+                    laser_list.add(laser)
 
-        elif key[pygame.K_SPACE] == False: # released button
-            if player_fire_button == 'DOWN':
-                player_fire_button = 'RELEASE'
+            elif key[pygame.K_SPACE] == False: # released button
+                if player_fire_button == 'DOWN':
+                    player_fire_button = 'RELEASE'
 
         if key[pygame.K_LEFT]:
             player.move_left()
@@ -196,52 +182,63 @@ def main():
                 laser_list.add(laser)
 
         # Hit detection
-            # Player crash into terrain
-            if pygame.sprite.collide_mask(player, terrain_ceiling) or pygame.sprite.collide_mask(player, terrain_ground):
-                if player.alive:
-                    for x in range(72):
-                        shrap = Shrapnel(1, player.rect.x, player.rect.y ) # "ship" shrapnel
-                        shrap.x_force = random.randrange(-40, 40) / 10
-                        shrap.y_force = random.randrange(-40, 40) / 10
-                        shrapnel_list.add(shrap)
+        # Player crash into terrain
+        if pygame.sprite.collide_mask(player, terrain_ceiling) or pygame.sprite.collide_mask(player, terrain_ground):
+            if player.alive and player.invincible_timer == 0:
+                controls.rumble(configure.controller_rumble_id, 1000);
                 player.death()
-
-            # Lasers
-            for laser in laser_list:
-                if laser.player_laser == True: # Player laser hit enemy
-                    enemy_hit_list = pygame.sprite.spritecollide(laser, enemy_list, False, pygame.sprite.collide_mask)
-                    for enemy in enemy_hit_list: 
-                        if enemy.alive:
-                            enemy.alive = False
-                            score += 100
-                            sfx_enemy_die.play(); # sfx
-                            shrap = Shrapnel(2, enemy.rect.x, enemy.rect.y ) # "laser" shrapnel
-                            shrapnel_list.add(shrap)
-                            for x in range(17):
-                                shrap = Shrapnel(3, enemy.rect.x, enemy.rect.y ) # "laser" shrapnel
-                                shrap.x_force = random.randrange(-20, 20) / 10
-                                shrap.y_force = random.randrange(-20, 20) / 10
-                                shrapnel_list.add(shrap)
-
-                            laser.kill()
-                if laser.player_laser == False: # Enemy Laser hits Player
-                    if pygame.sprite.collide_mask(laser, player):
-                        if player.alive:
-                            for x in range(72):
-                                shrap = Shrapnel(1, player.rect.x, player.rect.y ) # "ship" shrapnel
-                                shrap.x_force = random.randrange(-40, 40) / 10
-                                shrap.y_force = random.randrange(-40, 40) / 10
-                                shrapnel_list.add(shrap)
-                        player.death()
-                # Laser hits terrain                        
-                if pygame.sprite.collide_mask(laser, terrain_ceiling) or pygame.sprite.collide_mask(laser, terrain_ground):
-                    shrap = Shrapnel(2, laser.rect.x, laser.rect.y ) # "laser" shrapnel
+                for x in range(72):
+                    shrap = Shrapnel(1, player.rect.x, player.rect.y ) # "ship" shrapnel
+                    shrap.x_force = random.randrange(-40, 40) / 10
+                    shrap.y_force = random.randrange(-40, 40) / 10
                     shrapnel_list.add(shrap)
-                    laser.kill()
 
+        # Lasers
+        for laser in laser_list:
+            if laser.player_laser == True: # Player laser hit enemy
+                enemy_hit_list = pygame.sprite.spritecollide(laser, enemy_list, False, pygame.sprite.collide_mask)
+                for enemy in enemy_hit_list: 
+                    if enemy.alive:
+                        enemy.alive = False
+                        score += 100
+                        configure.play(1); # sfx
+                        controls.rumble(configure.controller_rumble_id, 100);
+                        shrap = Shrapnel(2, enemy.rect.x, enemy.rect.y ) # "laser" shrapnel
+                        shrapnel_list.add(shrap)
+                        laser.kill()
+                        for x in range(17):
+                            shrap = Shrapnel(3, enemy.rect.x, enemy.rect.y ) # "laser" shrapnel
+                            shrap.x_force = random.randrange(-20, 20) / 10
+                            shrap.y_force = random.randrange(-20, 20) / 10
+                            shrapnel_list.add(shrap)
+
+
+            if laser.player_laser == False: # Enemy Laser hits Player
+                if pygame.sprite.collide_mask(laser, player):
+                    if player.alive and player.invincible_timer == 0:
+                        player.death()
+                        for x in range(72):
+                            shrap = Shrapnel(1, player.rect.x, player.rect.y ) # "ship" shrapnel
+                            shrap.x_force = random.randrange(-40, 40) / 10
+                            shrap.y_force = random.randrange(-40, 40) / 10
+                            shrapnel_list.add(shrap)
+                        
+            # Laser hits terrain                        
+            if pygame.sprite.collide_mask(laser, terrain_ceiling) or pygame.sprite.collide_mask(laser, terrain_ground):
+                shrap = Shrapnel(2, laser.rect.x, laser.rect.y ) # "laser" shrapnel
+                shrapnel_list.add(shrap)
+                laser.kill()
+
+        # Handle Player-specific timers here
         if player.alive == False:
-            if pygame.time.get_ticks() > player.alive_timer + 5000:
-                game_loop = False
+            if pygame.time.get_ticks() > player.alive_timer:
+                if player.lives > 0:
+                    player.respawn()
+                else: # Game Over
+                    game_loop = False 
+        else:
+            if pygame.time.get_ticks() > player.invincible_timer:
+                player.invincible_timer = 0
 
         # -- Sprite and Screen --
             # Call "update" for sprites
@@ -256,14 +253,15 @@ def main():
 
         # Screen Update
             # Draw the background
-        draw_screen.blit(background_image, [0, 0])
+        configure.canvas.blit(background_image, [0, 0])
+
             # Draw the sprites
                 # Note that these are drawn in the order they are called (overlap!)
-        enemy_list.draw(draw_screen)
-        player.draw(draw_screen)
-        terrain_ceiling.draw(draw_screen)
-        terrain_ground.draw(draw_screen)
-        shrapnel_list.draw(draw_screen)
+        enemy_list.draw(configure.canvas)
+        player.draw(configure.canvas)
+        shrapnel_list.draw(configure.canvas)
+        terrain_ceiling.draw(configure.canvas)
+        terrain_ground.draw(configure.canvas)
 
 #======== This section completely optional ========== Trigonometry is fun!
         if ammo_type == 3: # Targeting laser
@@ -288,7 +286,7 @@ def main():
                     angle = math.atan2( end_y - start_y, end_x - start_x );
 
                     # Draw a grey line from spaceship to enemy (ez way to do it!)
-                    pygame.draw.line(draw_screen, (55, 55, 55), (start_x, start_y), (end_x, end_y) )
+                    pygame.draw.line(configure.canvas, (55, 55, 55), (start_x, start_y), (end_x, end_y) )
 
                     # Draw Green "points" along the line (calculated way to do it!)
                     b = 0
@@ -299,7 +297,7 @@ def main():
                         b += speed
                         f = f + (math.cos(angle) * speed);
                         g = g + (math.sin(angle) * speed);
-                        pygame.draw.line(draw_screen, (0, 255, 0), [f, g], [f, g] )
+                        pygame.draw.line(configure.canvas, (0, 255, 0), [f, g], [f, g] )
 
                     # Check if this is the closest distance (used for 'red line' below, outside of loop)
                     if distance < closest:
@@ -320,32 +318,52 @@ def main():
                     b += 2
                     f = f + (math.cos(angle) * 2);
                     g = g + (math.sin(angle) * 2);
-                    pygame.draw.line(draw_screen, (255,0,0), [f, g], [f, g] )
+                    pygame.draw.line(configure.canvas, (255,0,0), [f, g], [f, g] )
 #======== End of section ===========
 
             # Draw the "darkness"
-        draw_screen.blit(darkness_image, [-320 + player.rect.x, -240 + player.rect.y])
+        configure.canvas.blit(darkness_image, [-320 + player.rect.x, -240 + player.rect.y])
 
             # Draw lasers outside of the "darkness" since they are their own light source and shouldn't fade
-        for laser in laser_list:
-            laser.draw(draw_screen) # this overrides the group draw function
+        laser_list.draw(configure.canvas)
 
         # UI elements
         # Score
         text = str(score)
-        game_text(text, 160, 10, True)
+        gametext.text(text, 160, 10, True, False)
+        # Player Lives
+        for x in range(player.lives):
+            configure.canvas.blit(player.animation_frames[0], [x * 17, 220])
 
-
-            # Scale the draw screen to display screen
-        screen.blit(pygame.transform.scale(draw_screen, screen.get_rect().size), (0, 0) ) 
-            # place the screen on the display via pygame
-        pygame.display.flip()
+        configure.display()
 
             # Limit to 60 fps
         clock.tick(60)
 
     # Out of the Game Loop
     pygame.mixer.music.stop() # Stop the music playlist
+
+    return 'title'
+
+
+# ----- Main Loop
+def main():
+    done = False
+
+    action = "title"
+
+    # Screen looping: Title -> Demo -> HighScores ...
+    while not done:
+        if action == 'quit':
+            done = True
+        elif action == "title":
+            action = title_screen.display()
+        elif action == "gameplay":
+            action = game()
+        #elif action == "demo":
+        #    action = demo() # This could be a function that shows demo gameplay
+        #elif action == "highscores":
+        #    action = high_scores() # This could show a high scores screen
 
 
 ''' Call the main function
@@ -354,5 +372,6 @@ def main():
 if __name__ == '__main__':
     main()
  
+
 # Gracefully shutdown PyGame
 pygame.quit()
