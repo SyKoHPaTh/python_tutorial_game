@@ -15,11 +15,11 @@ class Player(pygame.sprite.Sprite):
         self.animation_frames = []
         sprite_sheet = SpriteSheet("assets/Images/sprite_sheet.png")
             # player sprites
-        image = sprite_sheet.get_image(0, 0, 16, 16);
+        image = sprite_sheet.get_image(0, 0, 16, 16)
         self.animation_frames.append(image)
-        image = sprite_sheet.get_image(16, 0, 16, 16);
+        image = sprite_sheet.get_image(16, 0, 16, 16)
         self.animation_frames.append(image) 
-        image = sprite_sheet.get_image(32, 0, 16, 16);
+        image = sprite_sheet.get_image(32, 0, 16, 16)
         self.animation_frames.append(image) 
 
         self.image = self.animation_frames[0] # initial frame

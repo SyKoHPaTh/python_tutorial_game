@@ -23,20 +23,20 @@ class Enemy(pygame.sprite.Sprite):
         sprite_sheet = SpriteSheet("assets/Images/sprite_sheet.png")
 
             # enemy sprites (3 frame animation)
-        image = sprite_sheet.get_image(0, 16, 16, 16); # (x, y, width, height)
+        image = sprite_sheet.get_image(0, 16, 16, 16) # (x, y, width, height)
         self.animation_frames.append(image)
-        image = sprite_sheet.get_image(16, 16, 16, 16);
+        image = sprite_sheet.get_image(16, 16, 16, 16)
         self.animation_frames.append(image) 
-        image = sprite_sheet.get_image(32, 16, 16, 16);
+        image = sprite_sheet.get_image(32, 16, 16, 16)
         self.animation_frames.append(image) 
             # enemy explosion (4 frame animation)
-        image = sprite_sheet.get_image(0, 32, 16, 16);
+        image = sprite_sheet.get_image(0, 32, 16, 16)
         self.animation_frames.append(image)
-        image = sprite_sheet.get_image(16, 32, 16, 16);
+        image = sprite_sheet.get_image(16, 32, 16, 16)
         self.animation_frames.append(image) 
-        image = sprite_sheet.get_image(32, 32, 16, 16);
+        image = sprite_sheet.get_image(32, 32, 16, 16)
         self.animation_frames.append(image) 
-        image = sprite_sheet.get_image(48, 32, 16, 16);
+        image = sprite_sheet.get_image(48, 32, 16, 16)
         self.animation_frames.append(image) 
 
         self.image = self.animation_frames[0] # set initial frame

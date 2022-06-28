@@ -26,6 +26,18 @@ class Configure():
         self.screen_ratio = self.screen_width / self.screen_height # recalculated every time the screen size changes
         self.draw_ratio = self.screen_width / self.screen_height
         self.controller_rumble_id = False
+        self.sfx_volume = float(1.0) # 0.0 to 1.0
+        self.music_volume  = float (1.0) # 0.0 to 1.0
+
+        # Sound effects
+        self.sfx_list = []
+        sfx = pygame.mixer.Sound("assets/Audio/SF1.wav")
+        self.sfx_list.append(sfx)
+        sfx = pygame.mixer.Sound("assets/Audio/SF10.wav")
+        self.sfx_list.append(sfx)
+
+        # Music
+        pygame.mixer.music.load( "assets/Audio/93727__zgump__tr-loop-0416.wav" )
 
         '''
             label; key value; controller id; key type; button value
@@ -48,12 +60,25 @@ class Configure():
 
         self.load()
 
+        self.set_volume()
+
             # Setup the initial screen (this will be resized)
         self.screen = pygame.display.set_mode([ screen_width, screen_height ])
             # Copy for our screen that we will draw everything to "canvas"
         self.canvas = self.screen.copy()
 
         self.init_display()
+
+    # Sets the volume of all sounds to configured values
+    def set_volume(self):
+        for sound in self.sfx_list:
+            sound.set_volume(self.sfx_volume)
+
+        pygame.mixer.music.set_volume(self.music_volume)
+
+
+    def play(self, sound_index):
+        self.sfx_list[sound_index].play()
 
     def init_display(self):
         # Resize the screen from our settings
@@ -101,6 +126,8 @@ class Configure():
         self.screen_fit = file.readline().rstrip('\n')
         self.fullscreen = self.to_bool(file.readline().rstrip('\n'))
         self.borderless = self.to_bool(file.readline().rstrip('\n'))
+        self.sfx_volume = float(file.readline().rstrip('\n'))
+        self.music_volume = float(file.readline().rstrip('\n'))
         self.control_map = [] # clear our control map
         key_label = file.readline().rstrip('\n')
         if key_label == 'KEYMAP:':
@@ -135,6 +162,8 @@ class Configure():
         file.write( self.format(self.screen_fit ) )
         file.write( self.format(self.fullscreen ) )
         file.write( self.format(self.borderless ) )
+        file.write( self.format(self.sfx_volume ) )
+        file.write( self.format(self.music_volume ) )
         file.write( "KEYMAP:\n")
         for row in self.control_map:
             file.write( self.format( row['label'] ) )

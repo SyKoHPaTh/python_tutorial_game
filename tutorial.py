@@ -58,7 +58,7 @@ pygame.mouse.set_visible(False)
  
 # This sets the name of the window
 pygame.display.set_caption('Tutorial Spaceship Shooter')
- 
+  
 # Clock is used to cap framerate
 clock = pygame.time.Clock()
 
@@ -67,20 +67,6 @@ background_image = pygame.image.load("assets/Images/background.png").convert()
 
 # Load the font and set the font size
 gametext = GameText(configure.canvas, "assets/Fonts/upheavtt.ttf", 14)
-
-# Load Sound Effect(s) and Music
-sfx_player_shoot = pygame.mixer.Sound("assets/Audio/SF1.wav") 
-sfx_player_shoot.set_volume(0.5) # change the volume of the sfx, can use for music too
-sfx_enemy_die = pygame.mixer.Sound("assets/Audio/SF10.wav") 
-#sfx_enemy_die.set_volume(0.1)
-# Music
-pygame.mixer.music.load( "assets/Audio/93727__zgump__tr-loop-0416.wav" )
-
-# Change volume of sfx and music to match configure settings
-sfx_player_shoot.set_volume(0) 
-sfx_enemy_die.set_volume(0) 
-sfx_player_shoot.set_volume(0) 
-pygame.mixer.music.set_volume(0)
 
 # Initialize Controls
 controls = Controls(configure)
@@ -145,7 +131,7 @@ def game():
 
                     if player.gun_loaded == 1:
                         player.gun_loaded = 0 # disable flag
-                        sfx_player_shoot.play(); # Play the SFX
+                        configure.play(0); # Play the SFX stored in index 0
 
                         # Initialize a new laser, and add it to the group
                         laser = Lasers()
@@ -207,7 +193,7 @@ def game():
                     if enemy.alive:
                         enemy.alive = False
                         score += 100
-                        sfx_enemy_die.play(); # sfx
+                        configure.play(1); # sfx
                         laser.kill()
                         controls.rumble(configure.controller_rumble_id, 100);
 

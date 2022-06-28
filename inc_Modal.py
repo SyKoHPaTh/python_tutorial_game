@@ -340,7 +340,6 @@ class Modal():
     '''
     def controls(self):
         # Controls options
-        print("controls")
 
         controls = Controls(self.configure)
 
@@ -349,9 +348,11 @@ class Modal():
         else:
             rumble_name = 'None'
 
+        # What key did you press? find out with this:
         #keypress = controls.wait_for_key()
         #print("Pressed: ", keypress['key'])
 
+        # Using a controller?  What button did you press?
         #if keypress['id'] != 'keyboard':
         #    name = controls.get_name(keypress['id'])
         #    print("Controller: ", name)
@@ -482,5 +483,90 @@ class Modal():
         Ok -> Save and go to previous screen
     '''
     def audio(self):
-        # Audio options
-        print("audio")
+
+        # Initialize buttons
+        menu_buttons = []
+        menu_buttons.append( Button(self.configure, 'Cancel', 210, 180, 14, True) )
+        menu_buttons.append( Button(self.configure, 'OK', 110, 180, 14, True) )
+
+        status = 'resume' # Status is passed to the calling variable
+
+        wait_for_response = True
+        while wait_for_response:
+            mpos_x, mpos_y = pygame.mouse.get_pos() # current mouse position
+            # adjust for screen size scaling
+            mpos_x = mpos_x / (self.configure.screen_width / self.configure.canvas.get_width())
+            mpos_y = mpos_y / (self.configure.screen_height / self.configure.canvas.get_height())
+
+
+            # ----- Event Handler
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT: # did the user click the 'x' to close the window
+                    wait_for_response = False
+                    status = 'quit'
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        wait_for_response = False
+
+                    # events for just clicking
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1: # LMB
+                        # Check if button was clicked, and actions
+                        for item in menu_buttons:
+                            item.click( (mpos_x, mpos_y) )
+                            if item.name == 'Cancel' and item.is_active:
+                                # Load settings from file (don't save control changes)
+                                self.configure.load()
+                                self.configure.set_volume()
+                                wait_for_response = False
+                            if item.name == 'OK' and item.is_active:
+                                # Save settings (save our new control changes)
+                                self.configure.save()
+                                self.configure.set_volume()
+                                wait_for_response = False
+
+            # Mouse Button being held down (drag)
+            if pygame.mouse.get_pressed()[0] == True:
+                # Check if on the sliders
+                if mpos_x > 80 and mpos_x < 180 and mpos_y > 60 and mpos_y < 75: # SFX
+                    self.configure.sfx_volume = float((mpos_x - 80) / 100)
+                    # adjust actual sfx here
+                    self.configure.set_volume()
+
+                if mpos_x > 80 and mpos_x < 180 and mpos_y > 110 and mpos_y < 125: # Music
+                    self.configure.music_volume = float((mpos_x - 80) / 100)
+                    # adjust actual music here
+                    self.configure.set_volume()
+
+
+
+            # Draw stuff
+                # modal background
+            pygame.draw.rect(self.configure.canvas, (155, 155, 155), (60, 25, 200, 175 ))
+                # modal border
+            pygame.draw.rect(self.configure.canvas, (130, 120, 130), (60, 25, 200, 175 ), 5)
+
+            # SFX Volume Slider Setting
+            self.gametext.text('SFX', 80, 45, False, False)
+            pygame.draw.rect(self.configure.canvas, (100, 100, 100), (80, 65, 100, 4 ) ) # slider track
+            pygame.draw.rect(self.configure.canvas, (175, 175, 175), (80 + int(self.configure.sfx_volume * 100), 60, 10, 14 ) ) # slider mark background
+            pygame.draw.rect(self.configure.canvas, (130, 120, 130), (80 + int(self.configure.sfx_volume * 100), 60, 10, 14 ), 1 ) # slider mark border
+            self.gametext.text( str( int(self.configure.sfx_volume * 100) ) + "%", 200, 60, False, False) # text conversion of float (1.0) to percentage (100%)
+
+            # Music Volume Slider Setting
+            self.gametext.text('Music', 80, 95, False, False)
+            pygame.draw.rect(self.configure.canvas, (100, 100, 100), (80, 115, 100, 4 ) ) # slider track
+            pygame.draw.rect(self.configure.canvas, (175, 175, 175), (80 + int(self.configure.music_volume * 100), 110, 10, 14 ) ) # slider mark background
+            pygame.draw.rect(self.configure.canvas, (130, 120, 130), (80 + int(self.configure.music_volume * 100), 110, 10, 14 ), 1 ) # slider mark border
+            self.gametext.text( str( int(self.configure.music_volume * 100) ) + "%", 200, 110, False, False) # text conversion of float (1.0) to percentage (100%)
+
+           # Draw the menu buttons
+            for item in menu_buttons:
+                if item.is_visible:
+                    item.hover( (mpos_x, mpos_y) ) # check if the mouse is hovering over the button
+                    item.draw() # draw the button
+
+            self.configure.display()
+
+        return status
