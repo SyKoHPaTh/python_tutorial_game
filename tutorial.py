@@ -298,16 +298,23 @@ def game():
 
             # Draw the sprites
                 # Note that these are drawn in the order they are called (overlap!)
-        enemy_list.draw(configure.canvas)
+        for enemy in enemy_list:
+            # The reason why we do this is so that we can call the modified draw() in Enemy class
+            enemy.draw(configure.canvas)
         player.draw(configure.canvas)
         shrapnel_list.draw(configure.canvas)
         level_data.draw(configure.canvas)
 
 #======== This section completely optional ========== Trigonometry is fun!
         if player.ammo_type == 3: # Targeting laser
-            # Check to make sure there is, ya know, actually an enemy out there
-            list_size = len( enemy_list )
-            if list_size > 0:
+            # Check to make sure there is, ya know, actually an enemy out there (not a powerup!)
+            target_enemy = False
+            for enemy in enemy_list:
+                if enemy.type > 9:
+                    target_enemy = True
+                    break
+
+            if target_enemy == True:
                 # find the closest enemy to us
                 closest = 999 # set a "range", in this case we want the whole screen (max range (screen width/height): sqrt(320^2 + 240^2) = 400)
                 closest_x = 0
@@ -342,7 +349,7 @@ def game():
                     '''
 
                     # Check if this is the closest distance (used for 'red line' below, outside of loop)
-                    if distance < closest:
+                    if distance < closest and enemy.type > 9:
                         closest = distance
                         # Just get the enemy location
                         closest_x = enemy.rect.x

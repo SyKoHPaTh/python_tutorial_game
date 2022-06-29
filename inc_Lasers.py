@@ -90,14 +90,17 @@ class Lasers(pygame.sprite.Sprite):
             self.rect.y += self.y_force
 
         elif self.ammo == 2: # homing shot
-            # If there is an enemy...
-            list_size = len( self.enemy_target )
-            if list_size > 0:
-                for enemy in self.enemy_target:
+            # If there is an enemy...(not a powerup!)
+            target_x = -1
+            target_y = -1
+            for enemy in self.enemy_target:
+                if enemy.type > 9:
                     # Just "target" the first one!
                     target_x = enemy.rect.x
                     target_y = enemy.rect.y
                     break
+
+            if target_x != -1:
 
                 if self.rect.x < target_x: self.x_force += self.speed / 20
                 if self.rect.x > target_x: self.x_force -= self.speed / 20
@@ -162,8 +165,13 @@ class Lasers(pygame.sprite.Sprite):
     '''
     def calculate_target(self, enemy_list):
         # 0 - Check to make sure there is, ya know, actually an enemy out there
-        list_size = len( enemy_list )
-        if list_size == 0:
+        target_enemy = False
+        for enemy in enemy_list:
+            if enemy.type > 9:
+                target_enemy = True
+                break
+
+        if target_enemy == False:
             # if no enemy, just set laser along a straight line path
             self.x_force = self.speed
             self.y_force = 0
@@ -177,7 +185,7 @@ class Lasers(pygame.sprite.Sprite):
             distance = math.sqrt((enemy.rect.x - self.rect.x)**2 + (enemy.rect.y - self.rect.y)**2) # Pythagorean Theorem
 
             # If the distance to the enemy is shorter than what we know...
-            if distance < shortest:
+            if distance < shortest and enemy.type > 9:
                 # update the shortest distance for comparison
                 shortest = distance
                 # Sprite groups don't support indexing, so reference sprite directly

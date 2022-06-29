@@ -33,6 +33,8 @@ class Enemy(pygame.sprite.Sprite):
         self.gun_loaded = 0  # ready to fire!
         self.speed = -1 # how "fast" we scoot along the screen (negative = left)
         self.type = enemy_type
+        self.scale_percent = 100 # used for tracking the scaling size
+        self.scale_flag = True # keep track if scaling up or down
 
         self.load_images(self.type, start_x, start_y)
 
@@ -97,11 +99,9 @@ class Enemy(pygame.sprite.Sprite):
                 # turn into powerup?
                 powerup = random.randrange(1, 10)
                 if powerup < 5:
-                    print("Powerup type: ", powerup)
                     self.type = powerup
                     self.load_images(self.type, self.rect.x, self.rect.y)
                 else:
-                    print('ded: ', powerup)
                     self.kill()
                     return
 
@@ -125,6 +125,25 @@ class Enemy(pygame.sprite.Sprite):
 
         self.image = self.animation_frames[self.frame]
 
+        # Powerups "pulse", so use transform scaling
+        if self.type > 0 and self.type < 5:
+            width = self.rect.width * (self.scale_percent / 100)
+            height = self.rect.height * (self.scale_percent / 100)
+            if self.scale_flag == True:
+                self.scale_percent += 1
+                if self.scale_percent > 100:
+                    self.scale_flag = False
+            else:
+                self.scale_percent -= 1
+                if self.scale_percent < 80:
+                    self.scale_flag = True
+            # Scaling from the original, but will be overwritten next update()
+            self.image = pygame.transform.scale(self.image, (width, height) )
+            self.scaled_rect = self.image.get_rect(center = self.rect.center)
+        else:
+            self.scaled_rect = self.rect
+
+
         # Offscreen, remove this sprite
         if self.rect.y < -16: 
             self.kill()
@@ -139,4 +158,4 @@ class Enemy(pygame.sprite.Sprite):
         Places the current animation frame image onto the passed screen
     '''
     def draw(self, win):
-        win.blit(self.image, self.rect)
+        win.blit(self.image, self.scaled_rect)
