@@ -10,7 +10,7 @@ class Shrapnel(pygame.sprite.Sprite):
     ''' Init
         This function is called automatically when we initialize the Class
     '''
-    def __init__(self, shrapnel_type, x, y):
+    def __init__(self, shrapnel_type, source_rect):
         super().__init__()
 
         self.type = shrapnel_type   # 1 = ship, 2 = laser, 3 = enemy  
@@ -30,13 +30,13 @@ class Shrapnel(pygame.sprite.Sprite):
                 self.animation_frames.append(image)
 
 
-        self.rect = image.get_rect() 
-        self.rect.x = x # shrapnel init location (horizontal)
-        self.rect.y = y # shrapnel init location (vertical)
+        self.rect = image.get_rect(center = source_rect.center)
         self.x_force = 0
         self.y_force = 0
-        self.x_float = x
-        self.y_float = y
+        self.x_float = float(self.rect.x) # shrapnel init location (rect.x,y read from this after conversions)
+        self.y_float = float(self.rect.y)
+        self.angle = random.randrange(0, 360)
+        self.rotation_speed = random.randrange(-5, 5)
         self.frame = 0 # current animation frame 
         self.animation_timer = 0 # animation timer
         self.animation_delay = 100 # time between animation frames 
@@ -70,8 +70,15 @@ class Shrapnel(pygame.sprite.Sprite):
 
         self.image = self.animation_frames[self.frame]
 
+        # Rotation from the original, but will be overwritten next update()
+        self.angle += self.rotation_speed
+        self.image = pygame.transform.rotate(self.image, self.angle )
+        self.scaled_rect = self.image.get_rect(center = self.rect.center)
+
+
+
     ''' Draw
         Places the current animation frame image onto the passed screen
     '''
     def draw(self, win):
-        win.blit(self.image, self.rect)
+        win.blit(self.image, self.scaled_rect)

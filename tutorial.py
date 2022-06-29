@@ -199,7 +199,7 @@ def game():
                 configure.play(1); # sfx
                 controls.rumble(configure.controller_rumble_id, 100);
                 for x in range(5): # pick up powerup
-                    shrap = Shrapnel(2, enemy.rect.x, enemy.rect.y ) # "laser" shrapnel
+                    shrap = Shrapnel(2, enemy.rect ) # "laser" shrapnel
                     shrap.x_force = random.randrange(-10, 10) / 10
                     shrap.y_force = random.randrange(-10, 10) / 10
                     shrapnel_list.add(shrap)
@@ -211,24 +211,25 @@ def game():
                 configure.play(1); # sfx
                 controls.rumble(configure.controller_rumble_id, 100);
                 for x in range(72): # player explode
-                    shrap = Shrapnel(1, player.rect.x, player.rect.y ) # "ship" shrapnel
+                    shrap = Shrapnel(1, player.rect ) # "ship" shrapnel
                     shrap.x_force = random.randrange(-40, 40) / 10
                     shrap.y_force = random.randrange(-40, 40) / 10
                     shrapnel_list.add(shrap)
                 for x in range(17): # enemy explode
-                    shrap = Shrapnel(3, enemy.rect.x, enemy.rect.y ) # "enemy" shrapnel
+                    shrap = Shrapnel(3, enemy.rect ) # "enemy" shrapnel
                     shrap.x_force = random.randrange(-20, 20) / 10
                     shrap.y_force = random.randrange(-20, 20) / 10
                     shrapnel_list.add(shrap)
 
         # Hit detection
         # Player crash into terrain
-        if pygame.sprite.collide_mask(player, level_data.ceiling) or pygame.sprite.collide_mask(player, level_data.ground):
-            if player.alive and player.invincible_timer == 0:
+        player_crash = pygame.sprite.spritecollide(player, level_data.objects, False, pygame.sprite.collide_mask)
+        for crash in player_crash:
+            if crash.collide == True and player.alive and player.invincible_timer == 0:
                 controls.rumble(configure.controller_rumble_id, 1000);
                 player.death()
                 for x in range(72):
-                    shrap = Shrapnel(1, player.rect.x, player.rect.y ) # "ship" shrapnel
+                    shrap = Shrapnel(1, player.rect ) # "ship" shrapnel
                     shrap.x_force = random.randrange(-40, 40) / 10
                     shrap.y_force = random.randrange(-40, 40) / 10
                     shrapnel_list.add(shrap)
@@ -243,12 +244,12 @@ def game():
                         score += 100
                         configure.play(1); # sfx
                         controls.rumble(configure.controller_rumble_id, 100);
-                        shrap = Shrapnel(2, enemy.rect.x, enemy.rect.y ) # "laser" shrapnel
+                        shrap = Shrapnel(2, enemy.rect ) # "laser" shrapnel
                         shrapnel_list.add(shrap)
                         if player.ammo_type != 4:
                             laser.kill()
                         for x in range(17):
-                            shrap = Shrapnel(3, enemy.rect.x, enemy.rect.y ) # "enemy" shrapnel
+                            shrap = Shrapnel(3, enemy.rect ) # "enemy" shrapnel
                             shrap.x_force = random.randrange(-20, 20) / 10
                             shrap.y_force = random.randrange(-20, 20) / 10
                             shrapnel_list.add(shrap)
@@ -259,17 +260,19 @@ def game():
                     if player.alive and player.invincible_timer == 0:
                         player.death()
                         for x in range(72):
-                            shrap = Shrapnel(1, player.rect.x, player.rect.y ) # "ship" shrapnel
+                            shrap = Shrapnel(1, player.rect ) # "ship" shrapnel
                             shrap.x_force = random.randrange(-40, 40) / 10
                             shrap.y_force = random.randrange(-40, 40) / 10
                             shrapnel_list.add(shrap)
                         
             # Laser hits terrain                        
-            if pygame.sprite.collide_mask(laser, level_data.ceiling) or pygame.sprite.collide_mask(laser, level_data.ground):
-                shrap = Shrapnel(2, laser.rect.x, laser.rect.y ) # "laser" shrapnel
-                shrapnel_list.add(shrap)
-                if player.ammo_type != 4:
-                    laser.kill()
+            laser_crash = pygame.sprite.spritecollide(laser, level_data.objects, False, pygame.sprite.collide_mask)
+            for crash in laser_crash:
+                if crash.collide == True:
+                    shrap = Shrapnel(2, laser.rect ) # "laser" shrapnel
+                    shrapnel_list.add(shrap)
+                    if player.ammo_type != 4:
+                        laser.kill()
 
         # Handle Player-specific timers here
         if player.alive == False:
@@ -298,11 +301,15 @@ def game():
 
             # Draw the sprites
                 # Note that these are drawn in the order they are called (overlap!)
+
+        # The reason why we do this is so that we can call the modified draw() in Enemy class                
         for enemy in enemy_list:
-            # The reason why we do this is so that we can call the modified draw() in Enemy class
             enemy.draw(configure.canvas)
+        for shrapnel in shrapnel_list:
+            # The reason why we do this is so that we can call the modified draw() in Enemy class
+            shrapnel.draw(configure.canvas)
+        # Normal sprite group draw() with no modification
         player.draw(configure.canvas)
-        shrapnel_list.draw(configure.canvas)
         level_data.draw(configure.canvas)
 
 #======== This section completely optional ========== Trigonometry is fun!

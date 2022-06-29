@@ -9,6 +9,16 @@ from inc_Sprite import Sprite
 
     Handles all level effects, such as background, ceiling, ground and everything else
 
+    
+    script = dict
+    [ distance : "COMMAND"]
+
+    * ceiling and ground can come in from offscreen
+    * c/g can scroll (different speeds)
+    * command: load different sprite for objects (or just kill object and make a new one?)
+
+
+
     Terrain ceiling/ground:
         There will be collision checking against the player and the enemies
 
@@ -26,17 +36,23 @@ class Level(object):
     def __init__(self):
         super().__init__()
 
+        self.distance = 0
+
 
         # Load the sprite sheet, depending on the "type"
 
         # Unique objects
+        self.objects = pygame.sprite.Group()
 
         # Ceiling and Ground
-        self.ceiling = Sprite("assets/Images/ceiling.png", 320, 240)
-        self.ceiling.float_y = 0  # override default
+        ceiling = Sprite("assets/Images/ceiling.png", 320, 240, True) # filename, width, height, collidable
+        ceiling.float_y = 0  # override default
+        self.objects.add(ceiling)
 
-        self.ground = Sprite("assets/Images/ground.png", 320, 240)
-        self.ground.float_y = 200  # override default
+        ground = Sprite("assets/Images/ground.png", 320, 240, True)
+        ground.float_y = 200  # override default
+        self.objects.add(ground)
+
 
 
     '''  Update
@@ -63,8 +79,7 @@ class Level(object):
             self.ground.float_x = 0 
         '''
 
-        self.ceiling.update()
-        self.ground.update()
+        self.objects.update()
 
 
     ''' Draw
@@ -72,12 +87,6 @@ class Level(object):
     '''
     def draw(self, win):
 
-        self.ceiling.draw(win)
-        self.ceiling.rect.x += 320
-        self.ceiling.draw(win)
-
-        self.ground.draw(win)
-        self.ground.rect.x += 320
-        self.ground.draw(win)
+        self.objects.draw(win)
 
 

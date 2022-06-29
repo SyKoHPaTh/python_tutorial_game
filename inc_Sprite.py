@@ -10,7 +10,7 @@ class Sprite(pygame.sprite.Sprite):
     ''' Init
         This function is called automatically when we initialize the Class
     '''
-    def __init__(self, image_file, width, height):
+    def __init__(self, image_file, width, height, collide):
         super().__init__()
 
         sprite_sheet = SpriteSheet(image_file)
@@ -23,6 +23,7 @@ class Sprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.float_x = 0 # Used for precise movement
         self.float_y = 0 
+        self.collide = collide
 
     ''' Update
         Convert precision location to the rect
