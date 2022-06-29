@@ -81,7 +81,6 @@ modal = Modal(configure)
 
 # Setup the sprites
 player = Player() # player (from the inc_Player.py class)
-level_data = Level()
 
     # Sprite Groups are used for multiples of the same thing
 enemy_list = pygame.sprite.Group() # Group of all enemy sprites
@@ -100,6 +99,9 @@ def game():
         # how often enemies appear
     enemy_spawn_timer = pygame.time.get_ticks() + 9000 # extra delay (9seconds)
     player_fire_button = 'UP' # Polling Key State
+
+    # Setup the level; this should also nuke any previous level data
+    level_data = Level()
 
     # Prepare the sprite groups, make sure they are empty (good to do for new levels)
     enemy_list.empty()
@@ -179,19 +181,27 @@ def game():
             player.move_down()
 
         # -- Game Logic --
-        # Enemies
-            # spawn an enemy
-        if pygame.time.get_ticks() > enemy_spawn_timer + 1000:
+        level_data.increment()
+
+            # Enemies
+        if level_data.enemy_flag == True: # spawn an enemy
+            level_data.enemy_flag = False
             enemy_spawn_timer = pygame.time.get_ticks()
             enemy = Enemy(10, 320, random.randrange(40, 184)); # type, x (offscreen), y account for terrain
             enemy_list.add(enemy)
-            # Enemy fire laser
+
+
+
+
+
+        # Enemy fire laser
         for enemy_ship in enemy_list:
             if enemy_ship.gun_loaded == 1:
                 enemy_ship.gun_loaded = 0
                 # Initialize a new laser, and add it to the group
                 laser = Lasers(enemy_ship.rect.x, enemy_ship.rect.y, False, 0, False)
                 laser_list.add(laser)
+
             # Player touch enemy
         enemy_hit_list = pygame.sprite.spritecollide(player, enemy_list, False, pygame.sprite.collide_mask)
         for enemy in enemy_hit_list: 

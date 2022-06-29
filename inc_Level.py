@@ -11,13 +11,15 @@ from inc_Sprite import Sprite
 
     
     script = dict
-    [ distance : "COMMAND"]
+    { milliseconds : "COMMAND"}
 
     * ceiling and ground can come in from offscreen
     * c/g can scroll (different speeds)
     * command: load different sprite for objects (or just kill object and make a new one?)
 
-
+    * darkness
+    * background image
+    * stars
 
     Terrain ceiling/ground:
         There will be collision checking against the player and the enemies
@@ -36,7 +38,21 @@ class Level(object):
     def __init__(self):
         super().__init__()
 
+        # Distance is used to go through the script
         self.distance = 0
+        self.distance_timer = pygame.time.get_ticks()
+
+        # Load the script [from file]
+        self.script = { 
+            100:"ENEMY" 
+        }
+
+        # Flag variables signal when to spawn things outside of the level handler
+        self.enemy_flag = False
+
+
+
+
 
 
         # Load the sprite sheet, depending on the "type"
@@ -52,6 +68,23 @@ class Level(object):
         ground = Sprite("assets/Images/ground.png", 320, 240, True)
         ground.float_y = 200  # override default
         self.objects.add(ground)
+
+
+    ''' Increment
+        Progresses distance and handles any script events
+    '''
+    def increment(self):
+        # Increment the distance, which is the key of the script dictionary
+        if pygame.time.get_ticks() > self.distance_timer + 1:
+            self.distance_timer = pygame.time.get_ticks()
+            self.distance += 1
+
+        if self.distance in self.script:
+            print( "activated: " , self.script[self.distance] )
+            # Handle Script Keywords
+            if self.script[self.distance] == "ENEMY":
+                self.enemy_flag = True
+            del(self.script[self.distance])
 
 
 
