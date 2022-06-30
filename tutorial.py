@@ -98,8 +98,6 @@ title_screen = Title(configure, gametext)
 '''
 def game():
     # startup variables
-        # how often enemies appear
-    enemy_spawn_timer = pygame.time.get_ticks() + 9000 # extra delay (9seconds)
     player_fire_button = 'UP' # Polling Key State
 
     # Setup the level; this should also nuke any previous level data
@@ -187,11 +185,10 @@ def game():
         level_data.increment()
 
             # Enemies
-        if level_data.enemy_flag == True: # spawn an enemy
-            level_data.enemy_flag = False
-            enemy_spawn_timer = pygame.time.get_ticks()
-            enemy = Enemy(10, 320, random.randrange(40, 184)); # type, x (offscreen), y account for terrain
+        if level_data.enemy_flag != False: # spawn an enemy
+            enemy = Enemy(level_data.enemy_flag['type'], level_data.enemy_flag['x'], level_data.enemy_flag['y']);
             enemy_list.add(enemy)
+            level_data.enemy_flag = False
 
 
         # Enemy fire laser
@@ -399,8 +396,31 @@ def game():
                     pygame.draw.line(configure.canvas, (255,0,0), [f, g], [f, g] )
 #======== End of section ===========
 
+        #===== Darkness Effect ===== probably need to move this to inc_Level.py
             # Draw the "darkness"
-        configure.canvas.blit(darkness_image, [-320 + player.rect.x, -240 + player.rect.y])
+        if level_data.darkness_scale != 0:
+            rect = darkness_image.get_rect()
+            if pygame.time.get_ticks() > level_data.darkness_timer + 10:
+                level_data.darkness_timer = pygame.time.get_ticks()
+                if level_data.darkness_flag == True and level_data.darkness_scale > 100:
+                    level_data.darkness_scale -= 1
+                elif level_data.darkness_flag == False and level_data.darkness_scale < 300:
+                    level_data.darkness_scale += 1
+
+            # Apply scaling
+            width = rect.width * (level_data.darkness_scale / 100)
+            height = rect.height * (level_data.darkness_scale / 100)
+
+            scaled_darkness_image = pygame.transform.scale(darkness_image, (width, height) )
+
+            # Center to the player's position
+            rect = scaled_darkness_image.get_rect(center = player.rect.center)            
+            configure.canvas.blit(scaled_darkness_image, rect)
+
+            if level_data.darkness_scale == 301:
+                level_data.darkness_scale = 0
+
+        #===== End Darkness Effect =====
 
             # Draw lasers outside of the "darkness" since they are their own light source and shouldn't fade
         laser_list.draw(configure.canvas)
@@ -411,6 +431,10 @@ def game():
         gametext.text(text, 160, 10, True, False)
         text = "Graze: " + str(graze)
         gametext.text(text, 160, 0, True, False)
+
+        text = str(level_data.distance)
+        gametext.text(text, 300, 220, True, False)
+
         # Player Lives
         for x in range(player.lives):
             configure.canvas.blit(player.animation_frames[0], [x * 17, 220])

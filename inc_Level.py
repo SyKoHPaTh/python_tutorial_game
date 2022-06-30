@@ -44,20 +44,34 @@ class Level(object):
 
         # Load the script [from file]
         self.script = { 
-            100:"ENEMY" 
+            100: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
+            150: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
+            200: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
+            250: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
+
+            300: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
+            350: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
+            400: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
+            450: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
+
+            500: { 'name': "DARKNESS" },
+            800: { 'name': "BRIGHTNESS" }, # lol?
         }
 
         # Flag variables signal when to spawn things outside of the level handler
         self.enemy_flag = False
 
+        self.darkness_scale = 0 # scaling for the "darkness" screen effect
+        self.darkness_timer = 0
+        self.darkness_flag = False
 
 
 
 
 
-        # Load the sprite sheet, depending on the "type"
 
-        # Unique objects
+
+        # Unique objects -- delete this section (move to increment)
         self.objects = pygame.sprite.Group()
 
         # Ceiling and Ground
@@ -80,10 +94,20 @@ class Level(object):
             self.distance += 1
 
         if self.distance in self.script:
-            print( "activated: " , self.script[self.distance] )
+            self.script_object = self.script[self.distance]
+            print( "activated: " , self.script_object['name'] )
             # Handle Script Keywords
-            if self.script[self.distance] == "ENEMY":
-                self.enemy_flag = True
+            if self.script_object['name'] == "ENEMY":
+                self.enemy_flag = self.script_object # store details for when the actual enemy spawns
+            if self.script_object['name'] == "DARKNESS":
+                self.darkness_scale = 300 # percent scale
+                self.darkness_timer = pygame.time.get_ticks()
+                self.darkness_flag = True
+            if self.script_object['name'] == "BRIGHTNESS":
+                self.darkness_scale = 100 # percent scale
+                self.darkness_timer = pygame.time.get_ticks()
+                self.darkness_flag = False
+
             del(self.script[self.distance])
 
 
