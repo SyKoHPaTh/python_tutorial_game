@@ -13,36 +13,37 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.animation_frames = []
-        sprite_sheet = SpriteSheet("assets/Images/sprite_sheet.png")
+        sprite_sheet = SpriteSheet("assets/Images/player_ship.png")
             # player sprites - middle
-        image = sprite_sheet.get_image(0, 0, 16, 16)
+        image = sprite_sheet.get_image(0, 0, 32, 16)
         self.animation_frames.append(image)
-        image = sprite_sheet.get_image(16, 0, 16, 16)
+        image = sprite_sheet.get_image(32, 0, 32, 16)
         self.animation_frames.append(image) 
-        image = sprite_sheet.get_image(32, 0, 16, 16)
+        image = sprite_sheet.get_image(64, 0, 32, 16)
         self.animation_frames.append(image) 
             # player sprites - up
-        image = sprite_sheet.get_image(0, 48, 16, 16) # 3
+        image = sprite_sheet.get_image(0, 16, 32, 16) # 3
         self.animation_frames.append(image)
-        image = sprite_sheet.get_image(16, 48, 16, 16)
+        image = sprite_sheet.get_image(32, 16, 32, 16)
         self.animation_frames.append(image) 
-        image = sprite_sheet.get_image(32, 48, 16, 16)
+        image = sprite_sheet.get_image(64, 16, 32, 16)
         self.animation_frames.append(image) 
             # player sprites - down
-        image = sprite_sheet.get_image(0, 64, 16, 16) # 6
+        image = sprite_sheet.get_image(0, 32, 32, 16) # 6
         self.animation_frames.append(image)
-        image = sprite_sheet.get_image(16, 64, 16, 16)
+        image = sprite_sheet.get_image(32, 32, 32, 16)
         self.animation_frames.append(image) 
-        image = sprite_sheet.get_image(32, 64, 16, 16)
+        image = sprite_sheet.get_image(64, 32, 32, 16)
         self.animation_frames.append(image) 
 
         self.image = self.animation_frames[0] # initial frame
-            # create a mask for collision (same for both lasers)
-        self.mask = pygame.mask.from_surface(self.image) 
+
+            # create a mask for collision, this one is used for "graze"
+        self.mask = pygame.mask.from_surface(image) 
 
         self.rect = self.image.get_rect() 
         self.rect.x = 32 # player init location (horizontal)
-        self.rect.y = 120 # player init location (vertical)
+        self.rect.y = 120 # player init location (vertical)    
         self.frame = 1 # current animation frame
         self.animation_time = 0 # animation delay speed
         self.animation_status = "MIDDLE"
@@ -129,8 +130,8 @@ class Player(pygame.sprite.Sprite):
         Places the current animation frame image onto the passed screen
     '''
     def draw(self, win):
-        if self.alive:
-            if self.invincible_timer > 0:
+        if self.alive: # only display the sprite if the player is alive
+            if self.invincible_timer > 0: # If Invincible, we're causing the sprite to "flicker"
                 if self.draw_flag == False:
                     self.draw_flag = True
                 else:

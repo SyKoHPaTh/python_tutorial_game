@@ -22,6 +22,7 @@ import math
 
 # ---- File Includes ----
 from inc_Player import Player
+from inc_PlayerHitbox import PlayerHitbox
 from inc_Enemy import Enemy
 from inc_Lasers import Lasers
 from inc_Level import Level
@@ -81,6 +82,7 @@ modal = Modal(configure)
 
 # Setup the sprites
 player = Player() # player (from the inc_Player.py class)
+player_hitbox = PlayerHitbox() # initialize the player's hitbox, a 4x4px square in the middle of player's sprite
 
     # Sprite Groups are used for multiples of the same thing
 enemy_list = pygame.sprite.Group() # Group of all enemy sprites
@@ -110,6 +112,7 @@ def game():
 
     game_loop = True # Flag used to keep the game loop going
     score = 0 # Player's score!
+    graze = 0 # Player's score for "close calls"
 
     # Start the music loop
         # Enable music Loop by passing -1 to "repeat"
@@ -140,10 +143,10 @@ def game():
                     if player.ammo_type == 0:
                         player.fire_delay = 200
                     if player.ammo_type == 1:
-                        laser = Lasers(player.rect.x, player.rect.y, enemy_list, player.ammo_type, True)
+                        laser = Lasers(player.rect.x + 16, player.rect.y + 4, enemy_list, player.ammo_type, True)
                         laser.y_force = 1
                         laser_list.add(laser)
-                        laser = Lasers(player.rect.x, player.rect.y, enemy_list, player.ammo_type, True)
+                        laser = Lasers(player.rect.x + 16, player.rect.y + 4, enemy_list, player.ammo_type, True)
                         laser.y_force = -1
                         laser_list.add(laser)
                         player.fire_delay = 500
@@ -163,7 +166,7 @@ def game():
                     configure.play(0); # Play the SFX
 
                     # Initialize a new laser, and add it to the group
-                    laser = Lasers(player.rect.x, player.rect.y, enemy_list, player.ammo_type, True)
+                    laser = Lasers(player.rect.x + 16, player.rect.y + 4, enemy_list, player.ammo_type, True)
                     laser_list.add(laser)
 
             elif key[pygame.K_SPACE] == False: # released button
@@ -191,9 +194,6 @@ def game():
             enemy_list.add(enemy)
 
 
-
-
-
         # Enemy fire laser
         for enemy_ship in enemy_list:
             if enemy_ship.gun_loaded == 1:
@@ -202,7 +202,7 @@ def game():
                 laser = Lasers(enemy_ship.rect.x, enemy_ship.rect.y, False, 0, False)
                 laser_list.add(laser)
 
-            # Player touch enemy
+            # Player touch powerup (full sprite)
         enemy_hit_list = pygame.sprite.spritecollide(player, enemy_list, False, pygame.sprite.collide_mask)
         for enemy in enemy_hit_list: 
             if enemy.type > 0 and enemy.type < 5:
@@ -216,7 +216,14 @@ def game():
                 player.ammo_type = enemy.type
                 enemy.kill()
 
-            if enemy.type > 9:
+                # Handle "graze"; it's a sprite overlap but doesn't kill the player
+            if enemy.type > 9 and player.alive:
+                graze += 1
+
+            # Player touch enemy (hitbox only)
+        enemy_hit_list = pygame.sprite.spritecollide(player_hitbox, enemy_list, False, pygame.sprite.collide_mask)
+        for enemy in enemy_hit_list: 
+            if enemy.type > 9 and player.alive:
                 enemy.die()
                 configure.play(1); # sfx
                 controls.rumble(configure.controller_rumble_id, 100);
@@ -232,8 +239,8 @@ def game():
                     shrapnel_list.add(shrap)
 
         # Hit detection
-        # Player crash into terrain
-        player_crash = pygame.sprite.spritecollide(player, level_data.objects, False, pygame.sprite.collide_mask)
+        # Player crash into terrain (no graze bonus here lol)
+        player_crash = pygame.sprite.spritecollide(player_hitbox, level_data.objects, False, pygame.sprite.collide_mask)
         for crash in player_crash:
             if crash.collide == True and player.alive and player.invincible_timer == 0:
                 controls.rumble(configure.controller_rumble_id, 1000);
@@ -266,7 +273,7 @@ def game():
 
 
             if laser.player_laser == False: # Enemy Laser hits Player
-                if pygame.sprite.collide_mask(laser, player):
+                if pygame.sprite.collide_mask(laser, player_hitbox):
                     if player.alive and player.invincible_timer == 0:
                         player.death()
                         for x in range(72):
@@ -274,6 +281,9 @@ def game():
                             shrap.x_force = random.randrange(-40, 40) / 10
                             shrap.y_force = random.randrange(-40, 40) / 10
                             shrapnel_list.add(shrap)
+                if pygame.sprite.collide_mask(laser, player): # graze
+                    if player.alive:
+                        graze += 1
                         
             # Laser hits terrain                        
             laser_crash = pygame.sprite.spritecollide(laser, level_data.objects, False, pygame.sprite.collide_mask)
@@ -298,6 +308,7 @@ def game():
         # -- Sprite and Screen --
             # Call "update" for sprites
         player.update()
+        player_hitbox.update(player.rect)
         level_data.update()
             # "update" the sprite groups
         enemy_list.update()
@@ -320,6 +331,7 @@ def game():
             shrapnel.draw(configure.canvas)
         # Normal sprite group draw() with no modification
         player.draw(configure.canvas)
+        player_hitbox.draw(configure.canvas, player.invincible_timer)
         level_data.draw(configure.canvas)
 
 #======== This section completely optional ========== Trigonometry is fun!
@@ -395,8 +407,10 @@ def game():
 
         # UI elements
         # Score
-        text = str(score)
+        text = "Score: " + str(score)
         gametext.text(text, 160, 10, True, False)
+        text = "Graze: " + str(graze)
+        gametext.text(text, 160, 0, True, False)
         # Player Lives
         for x in range(player.lives):
             configure.canvas.blit(player.animation_frames[0], [x * 17, 220])
