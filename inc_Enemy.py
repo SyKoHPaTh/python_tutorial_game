@@ -84,7 +84,7 @@ class Enemy(pygame.sprite.Sprite):
 
         if enemy_type == 11: # red enemy ship
             self.speed = 1
-            self.gun_type = 'straight'
+            self.gun_type = 'circle'
             self.life = 3
             sprite_sheet = SpriteSheet("assets/Images/enemy_sheet.png")
                 # enemy sprites (3 frame animation)

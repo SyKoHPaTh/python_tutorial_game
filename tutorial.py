@@ -203,11 +203,37 @@ def game():
                 if enemy_ship.gun_type == 'spiral':
                     laser = Lasers(enemy_ship.rect.x, enemy_ship.rect.y, False, 5, False)
                     laser.angle = enemy_ship.gun_angle
-                    enemy_ship.gun_angle += 5
+                    enemy_ship.gun_angle += 10
                     laser.speed = 1
                     laser.x_force = float(laser.speed * math.cos(math.radians(laser.angle)))
                     laser.y_force = float(laser.speed * math.sin(math.radians(laser.angle)))
                     laser_list.add(laser)
+                if enemy_ship.gun_type == 'random':
+                    laser = Lasers(enemy_ship.rect.x, enemy_ship.rect.y, False, 5, False)
+                    laser.angle = random.randrange(0, 360)
+                    laser.speed = 1
+                    laser.x_force = float(laser.speed * math.cos(math.radians(laser.angle)))
+                    laser.y_force = float(laser.speed * math.sin(math.radians(laser.angle)))
+                    laser_list.add(laser)
+                if enemy_ship.gun_type == 'circle':
+                    for x in range(0, 360, 10): # start, stop, step; change "step" for circle tightness
+                        laser = Lasers(enemy_ship.rect.x, enemy_ship.rect.y, False, 5, False)
+                        laser.angle = x
+                        laser.speed = 1
+                        laser.x_force = float(laser.speed * math.cos(math.radians(laser.angle)))
+                        laser.y_force = float(laser.speed * math.sin(math.radians(laser.angle)))
+                        laser_list.add(laser)
+                if enemy_ship.gun_type == 'golden_rule': # lol don't use this
+                    for x in range(0, 360, 5): # start, stop, step; change "step" for circle tightness
+                        laser = Lasers(enemy_ship.rect.x, enemy_ship.rect.y, False, 5, False)
+                        laser.angle = x
+                        laser.speed = (math.pi * math.radians(x))
+                        laser.x_force = float(laser.speed * math.cos(math.radians(laser.angle)))
+                        laser.y_force = float(laser.speed * math.sin(math.radians(laser.angle)))
+                        laser_list.add(laser)
+
+
+
 
             # Player touch powerup (full sprite)
         enemy_hit_list = pygame.sprite.spritecollide(player, enemy_list, False, pygame.sprite.collide_mask)
