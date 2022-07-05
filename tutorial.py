@@ -191,13 +191,23 @@ def game():
             level_data.enemy_flag = False
 
 
-        # Enemy fire laser
+        # Enemy fire laser - bullet patterns go here
         for enemy_ship in enemy_list:
             if enemy_ship.gun_loaded == 1:
                 enemy_ship.gun_loaded = 0
-                # Initialize a new laser, and add it to the group
-                laser = Lasers(enemy_ship.rect.x, enemy_ship.rect.y, False, 0, False)
-                laser_list.add(laser)
+                if enemy_ship.gun_type == 'straight':
+                    # Initialize a new laser, and add it to the group
+                    laser = Lasers(enemy_ship.rect.x, enemy_ship.rect.y, False, 5, False)
+                    laser.x_force = -2
+                    laser_list.add(laser)
+                if enemy_ship.gun_type == 'spiral':
+                    laser = Lasers(enemy_ship.rect.x, enemy_ship.rect.y, False, 5, False)
+                    laser.angle = enemy_ship.gun_angle
+                    enemy_ship.gun_angle += 5
+                    laser.speed = 1
+                    laser.x_force = float(laser.speed * math.cos(math.radians(laser.angle)))
+                    laser.y_force = float(laser.speed * math.sin(math.radians(laser.angle)))
+                    laser_list.add(laser)
 
             # Player touch powerup (full sprite)
         enemy_hit_list = pygame.sprite.spritecollide(player, enemy_list, False, pygame.sprite.collide_mask)
@@ -221,7 +231,6 @@ def game():
         enemy_hit_list = pygame.sprite.spritecollide(player_hitbox, enemy_list, False, pygame.sprite.collide_mask)
         for enemy in enemy_hit_list: 
             if enemy.type > 9 and player.alive:
-                enemy.die()
                 configure.play(1); # sfx
                 controls.rumble(configure.controller_rumble_id, 100);
                 for x in range(72): # player explode
@@ -234,6 +243,8 @@ def game():
                     shrap.x_force = random.randrange(-20, 20) / 10
                     shrap.y_force = random.randrange(-20, 20) / 10
                     shrapnel_list.add(shrap)
+                player.death()
+                enemy.die()
 
         # Hit detection
         # Player crash into terrain (no graze bonus here lol)
@@ -254,19 +265,23 @@ def game():
                 enemy_hit_list = pygame.sprite.spritecollide(laser, enemy_list, False, pygame.sprite.collide_mask)
                 for enemy in enemy_hit_list: 
                     if enemy.type > 9:
-                        enemy.die()
-                        score += 100
-                        configure.play(1); # sfx
-                        controls.rumble(configure.controller_rumble_id, 100);
-                        shrap = Shrapnel(2, enemy.rect ) # "laser" shrapnel
+                        shrap = Shrapnel(2, laser.rect ) # "laser" shrapnel
                         shrapnel_list.add(shrap)
                         if player.ammo_type != 4:
                             laser.kill()
-                        for x in range(17):
-                            shrap = Shrapnel(3, enemy.rect ) # "enemy" shrapnel
-                            shrap.x_force = random.randrange(-20, 20) / 10
-                            shrap.y_force = random.randrange(-20, 20) / 10
+                        enemy.life -= 1
+                        if enemy.life < 1:
+                            enemy.die()
+                            score += 100
+                            configure.play(1); # sfx
+                            controls.rumble(configure.controller_rumble_id, 100);
+                            shrap = Shrapnel(2, enemy.rect ) # "laser" shrapnel
                             shrapnel_list.add(shrap)
+                            for x in range(17):
+                                shrap = Shrapnel(3, enemy.rect ) # "enemy" shrapnel
+                                shrap.x_force = random.randrange(-20, 20) / 10
+                                shrap.y_force = random.randrange(-20, 20) / 10
+                                shrapnel_list.add(shrap)
 
 
             if laser.player_laser == False: # Enemy Laser hits Player

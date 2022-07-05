@@ -44,18 +44,36 @@ class Level(object):
 
         # Load the script [from file]
         self.script = { 
+            #50: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 100 }, # test enemy plz ignore
+
+
             100: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
             150: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
             200: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
-            250: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
+            250: { 'name': "ENEMY", 'type': 11, 'x': 320, 'y': 50 },
 
             300: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
             350: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
             400: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
-            450: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
+            450: { 'name': "ENEMY", 'type': 11, 'x': 320, 'y': 150 },
+
+            451: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100 },
 
             500: { 'name': "DARKNESS" },
+
+            510: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
+            530: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 100 },
+            550: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
+            570: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 200 },
+
+            600: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 70 }, # test enemy plz ignore
+            610: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 100 }, # test enemy plz ignore
+            620: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 130 }, # test enemy plz ignore
+            630: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 160 }, # test enemy plz ignore
+
             800: { 'name': "BRIGHTNESS" }, # lol?
+
+
         }
 
         # Flag variables signal when to spawn things outside of the level handler

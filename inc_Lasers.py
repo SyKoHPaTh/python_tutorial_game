@@ -71,6 +71,13 @@ class Lasers(pygame.sprite.Sprite):
             self.enemy_target = enemy_list
         elif self.ammo == 3: # "Targeted"
             self.calculate_target(enemy_list)
+        elif self.ammo == 5: # "Enemy Bullet"
+            # Note that all these are configured outside of this class
+            # Enemy bullets are given a set force and stay that way
+            self.x_force = 0
+            self.y_force = 0
+            self.angle = 0
+            self.speed = 0
 
 
     '''  Update
@@ -82,8 +89,6 @@ class Lasers(pygame.sprite.Sprite):
         if self.ammo == 0 or self.ammo == 4: # This is the "standard" linear way
             if self.player_laser == True: # player
                 self.rect.x += self.speed
-            else: # enemy
-                self.rect.x -= 2
 
         elif self.ammo == 1: # spread Shot
             self.rect.x += self.x_force
@@ -132,6 +137,15 @@ class Lasers(pygame.sprite.Sprite):
             # apply the "force" to our coordinates (make the laser move along the line)
             self.x_float += self.x_force
             self.y_float += self.y_force
+
+            # convert float to integer, don't worry about rounding
+            self.rect.x = int(self.x_float)
+            self.rect.y = int(self.y_float)
+
+        elif self.ammo == 5: # enemy bullet
+            # apply the "force" to our coordinates (make the laser move along the line)
+            self.x_float += float(self.x_force)
+            self.y_float += float(self.y_force)
 
             # convert float to integer, don't worry about rounding
             self.rect.x = int(self.x_float)
