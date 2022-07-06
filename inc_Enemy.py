@@ -20,6 +20,10 @@ from inc_SpriteSheet import SpriteSheet
         4   powerup: laser
         5   --placeholder-- maybe a powerup charge +1 for the player powerup selection tree
         10  normal scooter thing that fires one straight pew pew every once in a while
+        11  red enemy ship, shoots circles
+        12  powerup carrier
+        13  c-type spiral shooter ship
+        14  boss part (special overrides)
 
 '''
 
@@ -40,6 +44,8 @@ class Enemy(pygame.sprite.Sprite):
         self.speed = 0 # used for targeting calculations
         self.gun_type = 'none' # can't fire
         self.life = 1
+        self.boss_part = False
+        self.boss_destructable = False
 
         self.load_images(self.type, start_x, start_y)
 
@@ -121,6 +127,15 @@ class Enemy(pygame.sprite.Sprite):
             image = sprite_sheet.get_image(32, 48, 16, 16)
             self.animation_frames.append(image) 
 
+        if enemy_type == 14: # boss part
+            # note that many variables are overrided outside of this class (see inc_Boss.py)
+            sprite_sheet = SpriteSheet("assets/Images/boss.png")
+                #  (2 frames; solid damaged)
+            image = sprite_sheet.get_image(start_x, start_y, 16, 16) # whole
+            self.animation_frames.append(image)
+            image = sprite_sheet.get_image(start_x + 16, start_y, 16, 16) # damaged
+            self.animation_frames.append(image)
+
         # standard variables
         self.image = self.animation_frames[0] # set initial frame
             # Create a mask for collision
@@ -133,6 +148,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.y = int (self.y_float)
         self.frame = 0 # current animation frame
         self.animation_time = 0 # animation delay speed
+
 
     def die(self):
         if self.type == 12: # turn into powerup if it's a powerup dropper ship
@@ -216,10 +232,14 @@ class Enemy(pygame.sprite.Sprite):
                     self.shoot_time = pygame.time.get_ticks() + random.randrange(0, 1000)
                     self.gun_angle = 0
 
-
-
             if self.frame > 2: # reset animation loop
                 self.frame = 0
+
+        if self.type == 14: # Boss Part
+            if self.life > 2:
+                self.frame = 0 # ok
+            else:
+                self.frame = 1 # damaged
 
 
         self.image = self.animation_frames[self.frame]

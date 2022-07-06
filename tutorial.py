@@ -31,6 +31,7 @@ from inc_Modal import Modal
 from inc_Configure import Configure
 from inc_GameText import GameText
 from inc_Controls import Controls
+from inc_Boss import Boss
 
 from screen_Title import Title
 # ----- Initialization -----
@@ -89,6 +90,7 @@ enemy_list = pygame.sprite.Group() # Group of all enemy sprites
 laser_list = pygame.sprite.Group() # Group of all laser sprites
 shrapnel_list = pygame.sprite.Group() # Group of all shrapnel sprites
 
+
     # -- Screen Setups
 title_screen = Title(configure, gametext)
 
@@ -97,6 +99,8 @@ title_screen = Title(configure, gametext)
     Everything happens here!
 '''
 def game():
+
+
     # startup variables
     player_fire_button = 'UP' # Polling Key State
 
@@ -107,6 +111,9 @@ def game():
     enemy_list.empty()
     laser_list.empty()
     shrapnel_list.empty()
+
+    # Re-initialize the boss as a placeholder
+    boss = Boss(0)
 
     game_loop = True # Flag used to keep the game loop going
     score = 0 # Player's score!
@@ -216,6 +223,17 @@ def game():
             enemy = Enemy(level_data.enemy_flag['type'], level_data.enemy_flag['x'], level_data.enemy_flag['y']);
             enemy_list.add(enemy)
             level_data.enemy_flag = False
+        if level_data.boss_flag != False: # spawn the boss
+            boss = Boss(level_data.boss_flag['type']);
+            boss.alive = True
+            level_data.boss_flag = False
+            for index in boss.build:
+                print(boss.build[index] )
+                enemy = Enemy(14, boss.build[index]['sprite_x'], boss.build[index]['sprite_y']);
+                enemy.boss_part = index # used for future script reference
+                enemy.life = boss.build[index]['life']
+                enemy.boss_destructable = boss.build[index]['destroy']
+                enemy_list.add(enemy)
 
 
         # Enemy fire laser - bullet patterns go here
@@ -323,6 +341,9 @@ def game():
                         if player.ammo_type != 4:
                             laser.kill()
                         enemy.life -= 1
+                        if enemy.boss_part != False and enemy.boss_destructable == False and enemy.life < 1:
+                            # non destructable boss parts stay when "dead"
+                            enemy.life = 1
                         if enemy.life < 1:
                             enemy.die()
                             score += 100
@@ -376,6 +397,7 @@ def game():
         player_hitbox.update(player.rect)
         level_data.update()
             # "update" the sprite groups
+        boss.update(enemy_list) 
         enemy_list.update()
         laser_list.update()
         shrapnel_list.update()
@@ -399,12 +421,13 @@ def game():
         # Draw the sprites
             # Note that these are drawn in the order they are called (overlap!)
 
-        # The reason why we do this is so that we can call the modified draw() in Enemy class                
-        for enemy in enemy_list:
-            enemy.draw(configure.canvas)
+        boss.draw(configure.canvas)
         for shrapnel in shrapnel_list:
             # The reason why we do this is so that we can call the modified draw() in Enemy class
             shrapnel.draw(configure.canvas)
+        # The reason why we do this is so that we can call the modified draw() in Enemy class
+        for enemy in enemy_list:
+            enemy.draw(configure.canvas)
         # Normal sprite group draw() with no modification
         player.draw(configure.canvas)
         player_hitbox.draw(configure.canvas, player.invincible_timer)

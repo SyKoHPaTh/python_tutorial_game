@@ -46,7 +46,7 @@ class Level(object):
 
         # Load the script [from file]
         level_data = { 
-            #50: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 100 }, # test enemy plz ignore
+            50: { 'name': "BOSS", 'type': 1}, # test enemy plz ignore
 
             # Level entry, in space
             1: { 'name': "STARFIELD", 'speed': 'fast' },
@@ -112,6 +112,7 @@ class Level(object):
 
         # Flag variables signal when to spawn things outside of the level handler
         self.enemy_flag = False
+        self.boss_flag = False
 
         # Effect: Darkness
         self.darkness_scale = 0 # scaling for the "darkness" screen effect
@@ -204,6 +205,8 @@ class Level(object):
             if self.script_object['name'] == "FADE":
                 self.fade_target = self.script_object['value']
                 self.fade_color = self.script_object['color']
+            if self.script_object['name'] == "BOSS":
+                self.boss_flag = self.script_object # store boss details
 
             del(self.script[distance_str])
 
