@@ -11,7 +11,7 @@
             - Discord   https://discord.gg/UeNKDCJ
             - Twitch    https://www.twitch.tv/sykohpath
             - Twitter   https://twitter.com/sykohpath
-            - Website   http://www.sykohpath.com    
+            - Website   http://www.sykohpath.com
 '''
 
 # ---- Imports ----
@@ -183,6 +183,33 @@ def game():
 
         # -- Game Logic --
         level_data.increment()
+
+        # Add stars to the screen (background effect using "shrapnel")
+        if level_data.starfield_active:
+            for shrap in shrapnel_list:
+                if shrap.type == 4: # adjust speed of stars if the scene changes
+                    if level_data.starfield_speed == 'slow':
+                        if shrap.x_force < -10:
+                            shrap.x_force += 0.1
+                    if level_data.starfield_speed == 'medium':
+                        if shrap.x_force < -25:
+                            shrap.x_force += 0.1
+                        if shrap.x_force > -10:
+                            shrap.x_force -= 0.1
+                    if level_data.starfield_speed == 'fast':
+                        if shrap.x_force > -25:
+                            shrap.x_force -= 0.1
+                        
+            if level_data.starfield_flag:
+                level_data.starfield_flag = False
+                rect = pygame.Rect( (320, random.randrange(0,240)), (1, 1))
+                shrap = Shrapnel(4, rect ) # "laser" shrapnel
+                shrap.x_force = level_data.starfield_velocity
+                shrap.frame = random.randrange(0, 5)
+                shrap.rotation_speed = 0
+                shrap.angle = 0
+                shrapnel_list.add(shrap)
+
 
             # Enemies
         if level_data.enemy_flag != False: # spawn an enemy

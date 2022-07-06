@@ -19,14 +19,17 @@ class Shrapnel(pygame.sprite.Sprite):
         sprite_sheet = SpriteSheet("assets/Images/shrapnel.png")
 
         for sprite_x in range(0, 40, 8): # start, stop, step
-            if self.type == 1: # Ship
+            if self.type == 1: # Metal
                 image = sprite_sheet.get_image(sprite_x, 0, 8, 8);
                 self.animation_frames.append(image)
             if self.type == 2: # Laser
                 image = sprite_sheet.get_image(sprite_x, 8, 8, 8);
                 self.animation_frames.append(image)
-            if self.type == 3: # Enemy
+            if self.type == 3: # Explosion
                 image = sprite_sheet.get_image(sprite_x, 16, 8, 8);
+                self.animation_frames.append(image)
+            if self.type == 4: # Stars
+                image = sprite_sheet.get_image(sprite_x, 24, 8, 8);
                 self.animation_frames.append(image)
 
 
@@ -52,6 +55,8 @@ class Shrapnel(pygame.sprite.Sprite):
             self.animation_timer = pygame.time.get_ticks()
             if self.type == 1:
                 self.frame = random.randrange(0, 5) # It is only: 0,1,2,3,4
+            elif self.type == 4:
+                self.frame = self.frame # no animation
             else:
                 self.frame = self.frame + 1
 

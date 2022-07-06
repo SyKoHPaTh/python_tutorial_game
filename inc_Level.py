@@ -1,4 +1,5 @@
 import pygame
+import random
 
 from inc_SpriteSheet import SpriteSheet
 from inc_Sprite import Sprite
@@ -46,6 +47,13 @@ class Level(object):
         self.script = { 
             #50: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 100 }, # test enemy plz ignore
 
+            1: { 'name': "STARFIELD", 'speed': 'fast' },
+            101: { 'name': "STARFIELD", 'speed': 'slow' },
+            201: { 'name': "STARFIELD", 'speed': 'fast' },
+            301: { 'name': "STARFIELD", 'speed': 'medium' },
+            401: { 'name': "STARFIELD", 'speed': 'slow' },
+            1001: { 'name': "STARFIELD", 'speed': 'fast' },
+            2001: { 'name': "STARFIELD", 'speed': 'none' },
 
             100: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
             150: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
@@ -79,10 +87,17 @@ class Level(object):
         # Flag variables signal when to spawn things outside of the level handler
         self.enemy_flag = False
 
+        # Effect: Darkness
         self.darkness_scale = 0 # scaling for the "darkness" screen effect
         self.darkness_timer = 0
         self.darkness_flag = False
 
+        # Effect: Starfield (Scrolling stars)
+        self.starfield_active = False
+        self.starfield_timer = 0
+        self.starfield_flag = False
+        self.starfield_speed = 'slow'
+        self.starfield_velocity = 0
 
 
 
@@ -111,6 +126,19 @@ class Level(object):
             self.distance_timer = pygame.time.get_ticks()
             self.distance += 1
 
+        if pygame.time.get_ticks() > self.starfield_timer:
+            self.starfield_flag = True
+            # the faster stars are, they aren't on screen long, so have shorter timers
+            if self.starfield_speed == 'slow':
+                self.starfield_timer = pygame.time.get_ticks() + random.randrange(0, 1000)
+                self.starfield_velocity = random.randrange(-10, -1) / 10
+            elif self.starfield_speed == 'medium':
+                self.starfield_timer = pygame.time.get_ticks() + random.randrange(0, 500)
+                self.starfield_velocity = random.randrange(-25, -10) / 10
+            elif self.starfield_speed == 'fast':
+                self.starfield_timer = pygame.time.get_ticks() + random.randrange(0, 100)
+                self.starfield_velocity = random.randrange(-100, -25) / 10
+
         if self.distance in self.script:
             self.script_object = self.script[self.distance]
             print( "activated: " , self.script_object['name'] )
@@ -125,6 +153,13 @@ class Level(object):
                 self.darkness_scale = 100 # percent scale
                 self.darkness_timer = pygame.time.get_ticks()
                 self.darkness_flag = False
+            if self.script_object['name'] == "STARFIELD":
+                self.starfield_timer = pygame.time.get_ticks()
+                self.starfield_speed = self.script_object['speed']
+                if self.script_object['speed'] == 'none':
+                    self.starfield_active = False
+                else:
+                    self.starfield_active = True
 
             del(self.script[self.distance])
 
