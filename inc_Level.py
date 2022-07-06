@@ -1,5 +1,6 @@
 import pygame
 import random
+import json
 
 from inc_SpriteSheet import SpriteSheet
 from inc_Sprite import Sprite
@@ -44,16 +45,13 @@ class Level(object):
         self.distance_timer = pygame.time.get_ticks()
 
         # Load the script [from file]
-        self.script = { 
+        level_data = { 
             #50: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 100 }, # test enemy plz ignore
 
+            # Level entry, in space
             1: { 'name': "STARFIELD", 'speed': 'fast' },
-            101: { 'name': "STARFIELD", 'speed': 'slow' },
-            201: { 'name': "STARFIELD", 'speed': 'fast' },
-            301: { 'name': "STARFIELD", 'speed': 'medium' },
-            401: { 'name': "STARFIELD", 'speed': 'slow' },
-            1001: { 'name': "STARFIELD", 'speed': 'fast' },
-            2001: { 'name': "STARFIELD", 'speed': 'none' },
+            2: { 'name': "FADE", 'value': 255, 'color': (0,0,0)},
+
 
             100: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
             150: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
@@ -67,22 +65,50 @@ class Level(object):
 
             451: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100 },
 
-            500: { 'name': "DARKNESS" },
+            452: { 'name': "STARFIELD", 'speed': 'slow' },
 
             510: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
             530: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 100 },
             550: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
             570: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 200 },
 
-            600: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 70 }, # test enemy plz ignore
-            610: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 100 }, # test enemy plz ignore
-            620: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 130 }, # test enemy plz ignore
-            630: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 160 }, # test enemy plz ignore
+            600: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 70 },
+            601: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 130 },
+            602: { 'name': "STARFIELD", 'speed': 'none' },
+            603: { 'name': 'BACKGROUND', 'file':'assets/Images/background.png'},
+            604: { 'name': "FADE", 'value': 0, 'color': (0,0,0)},
 
-            800: { 'name': "BRIGHTNESS" }, # lol?
+            # Landscape intro here
 
+            # In cave
+            801: { 'name': "DARKNESS" },
+
+            # mini-boss enemy pattern
+            1001: { 'name': "BRIGHTNESS" }, # lol?
+            1000: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 70 },
+            1010: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 100 },
+            1020: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 130 },
+            1030: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 160 },
+
+            # flash red boss alert
+            2002: { 'name': "FADE", 'value': 0, 'color': (0,0,0)},
+            2102: { 'name': "FADE", 'value': 255, 'color': (255,0,0)},
+            2152: { 'name': "FADE", 'value': 0, 'color': (255,0,0)},
+            2202: { 'name': "FADE", 'value': 255, 'color': (255,0,0)},
+            2252: { 'name': "FADE", 'value': 0, 'color': (255,0,0)},
 
         }
+
+        # Save Level
+        level_json = json.dumps(level_data)
+        file = open('assets/Levels/earth.level', 'w')
+        file.write(level_json)
+        file.close()
+
+        # Load Level
+        with open('assets/Levels/earth.level') as readfile:
+            self.script = json.load(readfile)
+    
 
         # Flag variables signal when to spawn things outside of the level handler
         self.enemy_flag = False
@@ -99,8 +125,16 @@ class Level(object):
         self.starfield_speed = 'slow'
         self.starfield_velocity = 0
 
+        # Effect: Background (static image)
+        self.background_active = False
+        self.background_image = ''
+        self.background_loaded = False
 
-
+        # Effect: Fade 
+        self.fade_level = 0  # start at 0 opacity
+        self.fade_target = 0  
+        self.fade_timer = 0
+        self.fade_color = (0,0,0)
 
 
 
@@ -139,9 +173,10 @@ class Level(object):
                 self.starfield_timer = pygame.time.get_ticks() + random.randrange(0, 100)
                 self.starfield_velocity = random.randrange(-100, -25) / 10
 
-        if self.distance in self.script:
-            self.script_object = self.script[self.distance]
-            print( "activated: " , self.script_object['name'] )
+        distance_str = str(self.distance)
+        if distance_str in self.script:
+            self.script_object = self.script[distance_str]
+            print( "Script: [", self.distance, "] " , self.script_object)
             # Handle Script Keywords
             if self.script_object['name'] == "ENEMY":
                 self.enemy_flag = self.script_object # store details for when the actual enemy spawns
@@ -160,15 +195,33 @@ class Level(object):
                     self.starfield_active = False
                 else:
                     self.starfield_active = True
+            if self.script_object['name'] == "BACKGROUND":
+                self.background_active = True
+                self.background_file = self.script_object['file']
+                self.background_loaded = False
+                if self.background_file == 'none':
+                    self.background_active = False
+            if self.script_object['name'] == "FADE":
+                self.fade_target = self.script_object['value']
+                self.fade_color = self.script_object['color']
 
-            del(self.script[self.distance])
+            del(self.script[distance_str])
 
 
 
     '''  Update
-        Handles animations and gun timing
+        Handles animations and timing
     '''
     def update(self):
+
+        if pygame.time.get_ticks() > self.fade_timer + 10:
+            self.fade_timer = pygame.time.get_ticks()
+            if self.fade_level < self.fade_target:
+                self.fade_level += 2
+            if self.fade_level > self.fade_target:
+                self.fade_level -= 2
+            
+
         '''
         # Scroll the terrain
         self.ceiling.float_x -= 0.4

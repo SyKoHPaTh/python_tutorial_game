@@ -66,7 +66,7 @@ pygame.display.set_caption('Tutorial Spaceship Shooter')
 clock = pygame.time.Clock()
 
 # Load static images
-background_image = pygame.image.load("assets/Images/background.png").convert()
+background_image = ''
 
 #darkness_image = pygame.image.load("assets/Images/darkness.png").convert_alpha()
 darkness_image = pygame.image.load("assets/Images/subtle_darkness.png").convert_alpha() # Not as dark
@@ -383,10 +383,21 @@ def game():
 
         # Screen Update
             # Draw the background
-        configure.canvas.blit(background_image, [0, 0])
+        if level_data.background_active:
+            if level_data.background_loaded == False:
+                background_image = pygame.image.load(level_data.background_file).convert()
+            configure.canvas.blit(background_image, [0, 0])
+        else:
+            configure.canvas.fill((0,0,0))
 
-            # Draw the sprites
-                # Note that these are drawn in the order they are called (overlap!)
+            # Fading effect
+        fade_surface = pygame.Surface((WIDTH, HEIGHT))
+        fade_surface.set_alpha(level_data.fade_level)
+        fade_surface.fill(level_data.fade_color)
+        configure.canvas.blit(fade_surface, (0,0))
+
+        # Draw the sprites
+            # Note that these are drawn in the order they are called (overlap!)
 
         # The reason why we do this is so that we can call the modified draw() in Enemy class                
         for enemy in enemy_list:
