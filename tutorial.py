@@ -125,6 +125,7 @@ def game():
 
     # Actual game loop
     while game_loop:
+        player.ammo_type = 4
         # -- Event handler --
         key_list = controls.get_key()
         # loop through key dist
@@ -165,7 +166,7 @@ def game():
                             player.laser_part = 5
                             player.fire_delay = 1000
                         else:
-                            player.fire_delay = 50
+                            player.fire_delay = 60
 
                     player.gun_loaded = 0 # disable flag
                     configure.play(0); # Play the SFX
@@ -399,7 +400,7 @@ def game():
             # "update" the sprite groups
         boss.update(enemy_list) 
         enemy_list.update()
-        laser_list.update()
+        laser_list.update(player)
         shrapnel_list.update()
 
 

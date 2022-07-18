@@ -83,10 +83,10 @@ class Lasers(pygame.sprite.Sprite):
     '''  Update
         Handles animations and gun timing
     '''
-    def update(self):
+    def update(self, player):
         # Move the laser
 
-        if self.ammo == 0 or self.ammo == 4: # This is the "standard" linear way
+        if self.ammo == 0: # This is the "standard" linear way
             if self.player_laser == True: # player
                 self.rect.x += self.speed
 
@@ -141,6 +141,11 @@ class Lasers(pygame.sprite.Sprite):
             # convert float to integer, don't worry about rounding
             self.rect.x = int(self.x_float)
             self.rect.y = int(self.y_float)
+
+        elif self.ammo == 4: # laser, follows player
+            self.rect.x += self.speed
+            self.rect.y = player.rect.y + 4
+
 
         elif self.ammo == 5: # enemy bullet
             # apply the "force" to our coordinates (make the laser move along the line)
