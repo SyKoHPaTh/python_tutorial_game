@@ -46,8 +46,6 @@ class Level(object):
 
         # Load the script [from file]
         level_data = { 
-            50: { 'name': "BOSS", 'type': 1}, # test enemy plz ignore
-
             # Level entry, in space
             1: { 'name': "STARFIELD", 'speed': 'fast' },
             2: { 'name': "FADE", 'value': 255, 'color': (0,0,0)},
@@ -96,6 +94,14 @@ class Level(object):
             2152: { 'name': "FADE", 'value': 0, 'color': (255,0,0)},
             2202: { 'name': "FADE", 'value': 255, 'color': (255,0,0)},
             2252: { 'name': "FADE", 'value': 0, 'color': (255,0,0)},
+
+            2300: { 'name': "BOSS", 'type': 1}, # boss #1 yay
+            2500: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100 },
+            3000: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100 },
+            3500: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100 },
+            4000: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100 },
+            4500: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100 },
+
 
         }
 

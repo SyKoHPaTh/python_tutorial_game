@@ -35,7 +35,7 @@ class Enemy(pygame.sprite.Sprite):
         super().__init__()
 
         self.shoot_time = pygame.time.get_ticks() + random.randrange(0, 1000) # delay between firing
-        self.gun_loaded = 0  # ready to fire!
+        self.gun_loaded = False  # ready to fire!
         self.gun_angle = 0 # used for bullet firing
         self.type = enemy_type
         self.scale_percent = 100 # used for tracking the scaling size
@@ -196,7 +196,7 @@ class Enemy(pygame.sprite.Sprite):
 
             if pygame.time.get_ticks() > self.shoot_time + 1000:
                 self.shoot_time = pygame.time.get_ticks() + random.randrange(0, 1000)
-                self.gun_loaded = 1
+                self.gun_loaded = True
 
             if self.frame > 2: # reset animation loop
                 self.frame = 0
@@ -227,7 +227,7 @@ class Enemy(pygame.sprite.Sprite):
             else:
                 self.speed = 0
                 if pygame.time.get_ticks() > self.shoot_time + 1000:
-                    self.gun_loaded = 1
+                    self.gun_loaded = True
                 if self.gun_angle > 360:
                     self.shoot_time = pygame.time.get_ticks() + random.randrange(0, 1000)
                     self.gun_angle = 0
@@ -236,10 +236,10 @@ class Enemy(pygame.sprite.Sprite):
                 self.frame = 0
 
         if self.type == 14: # Boss Part
-            if self.life > 2:
+            if self.life > 2 or self.boss_destructable == True: 
                 self.frame = 0 # ok
             else:
-                self.frame = 1 # damaged
+                self.frame = 1 # damaged (only for non-destructable parts)
 
 
         self.image = self.animation_frames[self.frame]
@@ -274,8 +274,9 @@ class Enemy(pygame.sprite.Sprite):
             self.kill()
         if self.rect.x < -16:
             self.kill()
-        if self.rect.x > 320: 
-            self.kill()
+        # We want enemies to pre-load off screen and then magically float their way onto the screen
+        #if self.rect.x > 320:  
+        #    self.kill()
 
     ''' Draw
         Places the current animation frame image onto the passed screen
