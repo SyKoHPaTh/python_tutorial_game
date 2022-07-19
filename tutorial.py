@@ -105,7 +105,7 @@ def game():
     player_fire_button = 'UP' # Polling Key State
 
     # Setup the level; this should also nuke any previous level data
-    level_data = Level()
+    level_data = Level('earth')
 
     # Prepare the sprite groups, make sure they are empty (good to do for new levels)
     enemy_list.empty()
@@ -238,8 +238,30 @@ def game():
                 enemy_list.add(enemy)
 
 
-        # Enemy fire laser - bullet patterns go here
+        # Enemy Management
         for enemy_ship in enemy_list:
+            # non destructable boss parts stay when "dead"; if the boss is alive anyway
+            if boss.alive == True and enemy_ship.boss_part != False and enemy_ship.boss_destructable == False and enemy_ship.life < 1:
+                enemy_ship.life = 1
+
+            if level_data.nuke_flag:
+                enemy_ship.life = -1
+
+            # Is the enemy dead?
+            if enemy_ship.type > 9 and enemy_ship.life < 1:
+                enemy_ship.die()
+                score += 100
+                configure.play(1); # sfx
+                controls.rumble(configure.controller_rumble_id, 100);
+                shrap = Shrapnel(2, enemy_ship.rect ) # "laser" shrapnel
+                shrapnel_list.add(shrap)
+                for x in range(17):
+                    shrap = Shrapnel(3, enemy_ship.rect ) # "enemy" shrapnel
+                    shrap.x_force = random.randrange(-20, 20) / 10
+                    shrap.y_force = random.randrange(-20, 20) / 10
+                    shrapnel_list.add(shrap)
+
+            # fire laser - bullet patterns go here
             if enemy_ship.gun_loaded == True:
                 enemy_ship.gun_loaded = False
                 if enemy_ship.gun_type == 'straight':
@@ -278,7 +300,8 @@ def game():
                         laser.x_force = float(laser.speed * math.cos(math.radians(laser.angle)))
                         laser.y_force = float(laser.speed * math.sin(math.radians(laser.angle)))
                         laser_list.add(laser)
-
+        if level_data.nuke_flag: # maybe move this to level.py::update()?
+            level_data.nuke_flag = False
 
 
 
@@ -350,18 +373,7 @@ def game():
                         for index in boss.build:
                             for enemy in enemy_list: 
                                 if enemy.boss_part == index:
-                                    # shrapnel explode
-                                    enemy.die()
-                                    score += 100
-                                    configure.play(1); # sfx
-                                    controls.rumble(configure.controller_rumble_id, 100);
-                                    for x in range(17):
-                                        shrap = Shrapnel(3, enemy.rect ) # "enemy" shrapnel
-                                        shrap.x_force = random.randrange(-20, 20) / 10
-                                        shrap.y_force = random.randrange(-20, 20) / 10
-                                        shrapnel_list.add(shrap)
-
-
+                                    enemy.life = -1
 
                 # Laser hit enemies (including boss parts)
                 enemy_hit_list = pygame.sprite.spritecollide(laser, enemy_list, False, pygame.sprite.collide_mask)
@@ -372,28 +384,11 @@ def game():
                         if player.ammo_type != 4 or enemy.boss_part != False: # Laser beams don't get removed unless it's hitting a boss/part
                             laser.kill()
 
-                        # better way to handle this if statement?
-                        if enemy.boss_part != False and boss.invincible == False:
+                        # Subtract health if it's a non-boss part, or if it's a boss part while the boss isn't "invincible"
+                        if enemy.boss_part == False:
                             enemy.life -= 1
-                        elif enemy.boss_part == False:
+                        elif boss.invincible == False:
                             enemy.life -= 1
-
-                        if enemy.boss_part != False and enemy.boss_destructable == False and enemy.life < 1:
-                            # non destructable boss parts stay when "dead"
-                            enemy.life = 1
-                        if enemy.life < 1:
-                            enemy.die()
-                            score += 100
-                            configure.play(1); # sfx
-                            controls.rumble(configure.controller_rumble_id, 100);
-                            shrap = Shrapnel(2, enemy.rect ) # "laser" shrapnel
-                            shrapnel_list.add(shrap)
-                            for x in range(17):
-                                shrap = Shrapnel(3, enemy.rect ) # "enemy" shrapnel
-                                shrap.x_force = random.randrange(-20, 20) / 10
-                                shrap.y_force = random.randrange(-20, 20) / 10
-                                shrapnel_list.add(shrap)
-
 
             if laser.player_laser == False: # Enemy Laser hits Player
                 if pygame.sprite.collide_mask(laser, player_hitbox):

@@ -37,7 +37,7 @@ class Level(object):
     ''' Init
         This function is called automatically when we initialize the Class
     '''
-    def __init__(self):
+    def __init__(self, level_name):
         super().__init__()
 
         # Distance is used to go through the script
@@ -45,74 +45,9 @@ class Level(object):
         self.distance_timer = pygame.time.get_ticks()
 
         # Load the script [from file]
-        level_data = { 
-            # Level entry, in space
-            1: { 'name': "STARFIELD", 'speed': 'fast' },
-            2: { 'name': "FADE", 'value': 255, 'color': (0,0,0)},
-
-
-            100: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
-            150: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
-            200: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
-            250: { 'name': "ENEMY", 'type': 11, 'x': 320, 'y': 50 },
-
-            300: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
-            350: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
-            400: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
-            450: { 'name': "ENEMY", 'type': 11, 'x': 320, 'y': 150 },
-
-            451: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100 },
-
-            452: { 'name': "STARFIELD", 'speed': 'slow' },
-
-            510: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
-            530: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 100 },
-            550: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
-            570: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 200 },
-
-            600: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 70 },
-            601: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 130 },
-            602: { 'name': "STARFIELD", 'speed': 'none' },
-            603: { 'name': 'BACKGROUND', 'file':'assets/Images/background.png'},
-            604: { 'name': "FADE", 'value': 0, 'color': (0,0,0)},
-
-            # Landscape intro here
-
-            # In cave
-            801: { 'name': "DARKNESS" },
-
-            # mini-boss enemy pattern
-            1001: { 'name': "BRIGHTNESS" }, # lol?
-            1000: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 70 },
-            1010: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 100 },
-            1020: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 130 },
-            1030: { 'name': "ENEMY", 'type': 13, 'x': 320, 'y': 160 },
-
-            # flash red boss alert
-            2002: { 'name': "FADE", 'value': 0, 'color': (0,0,0)},
-            2102: { 'name': "FADE", 'value': 255, 'color': (255,0,0)},
-            2152: { 'name': "FADE", 'value': 0, 'color': (255,0,0)},
-            2202: { 'name': "FADE", 'value': 255, 'color': (255,0,0)},
-            2252: { 'name': "FADE", 'value': 0, 'color': (255,0,0)},
-
-            2300: { 'name': "BOSS", 'type': 1}, # boss #1 yay
-            2500: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100 },
-            3000: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100 },
-            3500: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100 },
-            4000: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100 },
-            4500: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100 },
-
-
-        }
-
-        # Save Level
-        level_json = json.dumps(level_data)
-        file = open('assets/Levels/earth.level', 'w')
-        file.write(level_json)
-        file.close()
-
         # Load Level
-        with open('assets/Levels/earth.level') as readfile:
+        file = 'assets/Levels/' + level_name + '.level'
+        with open(file) as readfile:
             self.script = json.load(readfile)
     
 
@@ -143,19 +78,11 @@ class Level(object):
         self.fade_timer = 0
         self.fade_color = (0,0,0)
 
+        # Effect: Nuke (destroy all enemies)
+        self.nuke_flag = False
 
-
-        # Unique objects -- delete this section (move to increment)
+        # Unique objects
         self.objects = pygame.sprite.Group()
-
-        # Ceiling and Ground
-        ceiling = Sprite("assets/Images/ceiling.png", 320, 240, True) # filename, width, height, collidable
-        ceiling.float_y = 0  # override default
-        self.objects.add(ceiling)
-
-        ground = Sprite("assets/Images/ground.png", 320, 240, True)
-        ground.float_y = 200  # override default
-        self.objects.add(ground)
 
 
     ''' Increment
@@ -213,6 +140,36 @@ class Level(object):
                 self.fade_color = self.script_object['color']
             if self.script_object['name'] == "BOSS":
                 self.boss_flag = self.script_object # store boss details
+                # stop all repeatable scrolling objects
+                for thing in self.objects:
+                    thing.scroll_repeat = False
+            if self.script_object['name'] == "NUKE":
+                self.nuke_flag = True
+            if self.script_object['name'] == "OBJECT":
+                # filename, width, height, collidable
+                object_init = Sprite(self.script_object['file'], self.script_object['width'], self.script_object['height'], self.script_object['collide'])
+                object_init.scroll = self.script_object['scroll']
+                object_init.scroll_speed = self.script_object['scroll_speed']
+                object_init.scroll_repeat = self.script_object['scroll_repeat']
+                object_init.float_x = self.script_object['x']
+                object_init.float_y = self.script_object['y']
+                self.objects.add(object_init)
+                if object_init.scroll_repeat: # make a duplicate for scrolling purposes
+                    object_init = Sprite(self.script_object['file'], self.script_object['width'], self.script_object['height'], self.script_object['collide'])
+                    object_init.scroll = self.script_object['scroll']
+                    object_init.scroll_speed = self.script_object['scroll_speed']
+                    object_init.scroll_repeat = self.script_object['scroll_repeat']
+                    object_init.float_x = self.script_object['x']
+                    object_init.float_y = self.script_object['y']
+                    if object_init.scroll == 'left':
+                        object_init.float_x = self.script_object['x'] + self.script_object['width']
+                    if object_init.scroll == 'right':
+                        object_init.float_x = self.script_object['x'] - self.script_object['width']
+                    if object_init.scroll == 'up':
+                        object_init.float_y = self.script_object['y'] + self.script_object['height']
+                    if object_init.scroll == 'down':
+                        object_init.float_y = self.script_object['y'] - self.script_object['height']
+                    self.objects.add(object_init)
 
             del(self.script[distance_str])
 
@@ -229,7 +186,33 @@ class Level(object):
                 self.fade_level += 2
             if self.fade_level > self.fade_target:
                 self.fade_level -= 2
-            
+
+        # Object behavior
+        for thing in self.objects:
+            if thing.scroll == 'left':
+                thing.float_x -= thing.scroll_speed
+                if thing.rect.y < 0:
+                    thing.float_y += (thing.scroll_speed / 10)
+                if thing.rect.y + thing.rect.height > 240:
+                    thing.float_y -= (thing.scroll_speed / 10)
+            if thing.scroll == 'right':
+                thing.float_x += thing.scroll_speed
+            if thing.scroll == 'up':
+                thing.float_y -= thing.scroll_speed
+            if thing.scroll == 'down':
+                thing.float_y += thing.scroll_speed
+
+            # Offscreen Handling
+            if thing.scroll_repeat: # loop the object
+                if thing.scroll == 'left' and thing.rect.x + thing.rect.width < 0:
+                    thing.float_x += thing.rect.width * 2
+                if thing.scroll == 'right' and thing.rect.x > 320:
+                    thing.float_x -= thing.rect.width * 2
+            else: # eliminate the object
+                if thing.scroll == 'left' and thing.rect.x + thing.rect.width < 0:
+                    thing.kill()
+                if thing.scroll == 'right' and thing.rect.x > 320:
+                    thing.kill()
 
         '''
         # Scroll the terrain

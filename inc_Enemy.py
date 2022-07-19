@@ -267,12 +267,12 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.y = int(self.y_float)
 
 
-        # Offscreen, remove this sprite
-        if self.rect.y < -16: 
+        # Offscreen, remove this sprite (allow some space for temporary offscreen behavior)
+        if self.rect.y < -50: 
             self.kill()
-        if self.rect.y > 240:
+        if self.rect.y > 300:
             self.kill()
-        if self.rect.x < -16:
+        if self.rect.x < -50:
             self.kill()
         # We want enemies to pre-load off screen and then magically float their way onto the screen
         #if self.rect.x > 320:  
