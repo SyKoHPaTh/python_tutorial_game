@@ -152,7 +152,9 @@ class Enemy(pygame.sprite.Sprite):
 
     def die(self):
         if self.type == 12: # turn into powerup if it's a powerup dropper ship
-            powerup = random.randrange(1, 5)
+            powerup = self.gun_type
+            if powerup == 'none':
+                powerup = random.randrange(1, 5)
             if powerup < 5:
                 self.type = powerup
                 self.load_images(self.type, self.x_float, self.y_float)

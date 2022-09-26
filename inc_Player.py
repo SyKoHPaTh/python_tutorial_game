@@ -1,6 +1,8 @@
 import pygame
+import random
 
 from inc_SpriteSheet import SpriteSheet
+from inc_Lasers import Lasers
 
 ''' Player
 
@@ -66,6 +68,7 @@ class Player(pygame.sprite.Sprite):
         self.invincible_timer = pygame.time.get_ticks() + 5000
         self.draw_flag = True
         self.ammo_type = 0 # straight bullet
+        self.ammo_level = 0 # no upgrades
         self.laser_part = 5
 
     ''' Death
@@ -76,6 +79,65 @@ class Player(pygame.sprite.Sprite):
             self.alive = False
             self.lives -= 1
             self.alive_timer = pygame.time.get_ticks() + 5000
+
+    ''' Fire Laser
+        Handles play firing; all upgrade types
+    '''
+
+    def fire_laser(self, laser_list, enemy_list):
+        
+        if self.ammo_type == 0: # Straight Shot
+            self.fire_delay = 200
+            # Initialize a new laser, and add it to the group
+            laser = Lasers(self.rect.x + 16, self.rect.y + 4, enemy_list, self.ammo_type, True)
+            laser_list.add(laser)
+        
+        if self.ammo_type == 1: # Spread Shot
+            if self.ammo_level == 0:
+                laser = Lasers(self.rect.x + 16, self.rect.y + 4, enemy_list, self.ammo_type, True)
+                laser.y_force = -1
+                laser_list.add(laser)
+            if self.ammo_level == 1:
+                laser = Lasers(self.rect.x + 16, self.rect.y + 4, enemy_list, self.ammo_type, True)
+                laser.y_force = 1
+                laser_list.add(laser)
+                laser = Lasers(self.rect.x + 16, self.rect.y + 4, enemy_list, self.ammo_type, True)
+                laser.y_force = -1
+                laser_list.add(laser)
+            self.fire_delay = 200
+        if self.ammo_type == 2: # Homing
+            laser = Lasers(self.rect.x + 16, self.rect.y + 4, enemy_list, self.ammo_type, True)
+            if self.ammo_level == 0:
+                self.fire_delay = 300
+            if self.ammo_level == 1:
+                laser.x_force = (random.randrange(1, 5) )
+                laser.y_force = (random.randrange(0, 11) - 5)
+                self.fire_delay = 150
+            laser_list.add(laser)
+        if self.ammo_type == 3:
+            laser = Lasers(self.rect.x + 16, self.rect.y + 4, enemy_list, self.ammo_type, True)
+            if self.ammo_level == 0:
+                self.fire_delay = 300
+            if self.ammo_level == 1:
+                laser.speed = 8
+                self.fire_delay = 200
+            laser_list.add(laser)
+        if self.ammo_type == 4:
+            laser = Lasers(self.rect.x + 16, self.rect.y + 4, enemy_list, self.ammo_type, True)
+            self.laser_part -= 1
+            if self.laser_part < 1:
+                if self.ammo_level == 0:
+                    laser.speed = 2
+                    self.laser_part = 5
+                if self.ammo_level == 1:
+                    laser.speed = 6
+                    self.laser_part = 7
+                self.fire_delay = 1000
+            else:
+                self.fire_delay = 60
+            laser_list.add(laser)
+        
+
 
 
     '''  Update

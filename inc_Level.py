@@ -9,29 +9,12 @@ from inc_Sprite import Sprite
 
     This replaces the orignal "Terrain" class
 
-    Handles all level effects, such as background, ceiling, ground and everything else
+    Handles all level effects, such as background, objects and everything else
 
-    
     script = dict
     { milliseconds : "COMMAND"}
 
-    * ceiling and ground can come in from offscreen
-    * c/g can scroll (different speeds)
-    * command: load different sprite for objects (or just kill object and make a new one?)
 
-    * darkness
-    * background image
-    * stars
-
-    Terrain ceiling/ground:
-        There will be collision checking against the player and the enemies
-
-        Image is loaded and then uses a special function "get_image_extend" to place
-        a duplicate of the image at the end.  Both images together create one long 
-        "sprite" that is 640x40.  This makes scrolling and wrapping easy!
-
-        Once the terrain has scrolled off the screen, it will move to 
-        replace the position of the second image (middle of the entire sprite).  
 '''
 class Level(object):
     ''' Init

@@ -145,34 +145,10 @@ def game():
                     player_fire_button = 'PRESSED'
 
                 if player.gun_loaded == True:
-                    if player.ammo_type == 0:
-                        player.fire_delay = 200
-                    if player.ammo_type == 1:
-                        laser = Lasers(player.rect.x + 16, player.rect.y + 4, enemy_list, player.ammo_type, True)
-                        laser.y_force = 1
-                        laser_list.add(laser)
-                        laser = Lasers(player.rect.x + 16, player.rect.y + 4, enemy_list, player.ammo_type, True)
-                        laser.y_force = -1
-                        laser_list.add(laser)
-                        player.fire_delay = 500
-                    if player.ammo_type == 2:
-                        player.fire_delay = 300
-                    if player.ammo_type == 3:
-                        player.fire_delay = 400
-                    if player.ammo_type == 4:
-                        player.laser_part -= 1
-                        if player.laser_part < 1:
-                            player.laser_part = 5
-                            player.fire_delay = 1000
-                        else:
-                            player.fire_delay = 60
-
+                    player.fire_laser(laser_list, enemy_list)
                     player.gun_loaded = False # disable flag
                     configure.play(0); # Play the SFX
 
-                    # Initialize a new laser, and add it to the group
-                    laser = Lasers(player.rect.x + 16, player.rect.y + 4, enemy_list, player.ammo_type, True)
-                    laser_list.add(laser)
 
             elif key[pygame.K_SPACE] == False: # released button
                 if player_fire_button == 'DOWN':
@@ -221,6 +197,8 @@ def game():
             # Enemies
         if level_data.enemy_flag != False: # spawn an enemy
             enemy = Enemy(level_data.enemy_flag['type'], level_data.enemy_flag['x'], level_data.enemy_flag['y']);
+            if 'powerup' in level_data.enemy_flag:
+                enemy.gun_type = level_data.enemy_flag['powerup']
             enemy_list.add(enemy)
             level_data.enemy_flag = False
         if level_data.boss_flag != False: # spawn the boss
@@ -316,7 +294,11 @@ def game():
                     shrap.x_force = random.randrange(-10, 10) / 10
                     shrap.y_force = random.randrange(-10, 10) / 10
                     shrapnel_list.add(shrap)
-                player.ammo_type = enemy.type
+                if player.ammo_type == enemy.type:
+                    player.ammo_level += 1 # upgrade gun
+                else:
+                    player.ammo_type = enemy.type # new gun, reset level
+                    player.ammo_level = 0 
                 enemy.kill()
 
                 # Handle "graze"; it's a sprite overlap but doesn't kill the player

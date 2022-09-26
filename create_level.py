@@ -16,12 +16,15 @@ level_data = {
     200: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 50 },
     250: { 'name': "ENEMY", 'type': 11, 'x': 320, 'y': 50 },
 
+    251: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 50, 'powerup': 4 },
+
+
     300: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
     350: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
     400: { 'name': "ENEMY", 'type': 10, 'x': 320, 'y': 150 },
     450: { 'name': "ENEMY", 'type': 11, 'x': 320, 'y': 150 },
 
-    451: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100 },
+    451: { 'name': "ENEMY", 'type': 12, 'x': 320, 'y': 100, 'powerup': 4 },
 
     452: { 'name': "STARFIELD", 'speed': 'slow' },
 
